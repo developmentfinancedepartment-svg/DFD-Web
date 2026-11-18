@@ -1,0 +1,29 @@
+# Compiled class files & build artifacts
+target/
+*.class
+
+# IntelliJ IDEA project files
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Ignore all YAML configuration files
+*.yaml
+*.yml
+
+# Ignore sensitive configuration files
+src/main/resources/application-production.yaml
+src/main/resources/application-development.yaml
+
+# Log files
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+uploads/
+
+resources/

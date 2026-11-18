@@ -1,0 +1,4 @@
+package com.logic.springjwt.config;
+
+public class FileUploadConfig {
+}

@@ -1,0 +1,4 @@
+package com.logic.springjwt.controllers;
+
+public class InformationSystemController {
+}

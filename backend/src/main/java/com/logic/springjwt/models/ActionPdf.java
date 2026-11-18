@@ -1,0 +1,126 @@
+package com.logic.springjwt.models;
+
+import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "action_pdf")
+public class ActionPdf {
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    private Long id;
+//    private String actionPdfName;
+//    private String actionPdfPath;
+//    private String actionImageName;
+//    private String actionImagePath;
+//    private int actionStatus;
+//    @Column(name = "added_pdf_at")
+//    private LocalDateTime addedPdfAt;
+//    @Column(name = "latest_status_update_at")
+//    private LocalDateTime latestStatusUpdateAt;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String actionPdfName;
+    private String actionPdfPath;
+    private String actionImageName;
+    private String actionImagePath;
+
+    private int actionStatus; // 0=PENDING, 1=APPROVED, 2=REJECTED
+
+    @Column(name = "added_pdf_at")
+    private LocalDateTime addedPdfAt;
+
+    @Column(name = "latest_status_update_at")
+    private LocalDateTime latestStatusUpdateAt;
+
+    @PrePersist
+    public void onCreate() {
+        this.addedPdfAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.latestStatusUpdateAt = LocalDateTime.now();
+    }
+
+    public ActionPdf() {
+    }
+
+    public ActionPdf(String actionPdfName, String actionPdfPath, String actionImageName, String actionImagePath, int actionStatus, LocalDateTime addedPdfAt, LocalDateTime latestStatusUpdateAt) {
+        this.actionPdfName = actionPdfName;
+        this.actionPdfPath = actionPdfPath;
+        this.actionImageName = actionImageName;
+        this.actionImagePath = actionImagePath;
+        this.actionStatus = actionStatus;
+        this.addedPdfAt = addedPdfAt;
+        this.latestStatusUpdateAt = latestStatusUpdateAt;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getActionPdfName() {
+        return actionPdfName;
+    }
+
+    public void setActionPdfName(String actionPdfName) {
+        this.actionPdfName = actionPdfName;
+    }
+
+    public String getActionPdfPath() {
+        return actionPdfPath;
+    }
+
+    public void setActionPdfPath(String actionPdfPath) {
+        this.actionPdfPath = actionPdfPath;
+    }
+
+    public String getActionImageName() {
+        return actionImageName;
+    }
+
+    public void setActionImageName(String actionImageName) {
+        this.actionImageName = actionImageName;
+    }
+
+    public String getActionImagePath() {
+        return actionImagePath;
+    }
+
+    public void setActionImagePath(String actionImagePath) {
+        this.actionImagePath = actionImagePath;
+    }
+
+    public LocalDateTime getAddedPdfAt() {
+        return addedPdfAt;
+    }
+
+    public void setAddedPdfAt(LocalDateTime addedPdfAt) {
+        this.addedPdfAt = addedPdfAt;
+    }
+
+    public int getActionStatus() {
+        return actionStatus;
+    }
+
+    public void setActionStatus(int actionStatus) {
+        this.actionStatus = actionStatus;
+    }
+
+    public LocalDateTime getLatestStatusUpdateAt() {
+        return latestStatusUpdateAt;
+    }
+
+    public void setLatestStatusUpdateAt(LocalDateTime latestStatusUpdateAt) {
+        this.latestStatusUpdateAt = latestStatusUpdateAt;
+    }
+}

@@ -1,0 +1,394 @@
+<template>
+  <footer class="footer-area">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row g-4">
+          <!-- Contact Info -->
+          <div class="col-lg-4 col-md-6">
+            <div class="footer-widget contact-widget">
+              <h4 class="widget-title">{{ $t('footer.contactUs') }}</h4>
+              <ul class="contact-info-list">
+                <li>
+                  <i class="fas fa-map-marker-alt"></i>
+                  <span>
+                    {{ $t('footer.addressLine1') }}<br />
+                    {{ $t('footer.addressLine2') }}<br /> 
+                    {{ $t('footer.addressLine3') }}<br />
+                    {{ $t('footer.addressLine4') }}
+                  </span>
+                </li>
+                <li>
+                  <i class="fas fa-phone-alt"></i>
+                  <span><a href="tel:+94112484862" style="color: inherit; text-decoration: none;">+94 11 248 4862</a></span>
+                </li>
+                <li>
+                  <i class="fas fa-envelope"></i>
+                  <span><a href="mailto:info@dfd.treasury.gov.lk" style="color: inherit; text-decoration: none;">info@dfd.treasury.gov.lk</a></span>
+                </li>
+              </ul>
+              <div class="footer-socials">
+                <h5 class="social-title">{{ $t('footer.followUs') }}</h5>
+                <div class="social-icons">
+                  <a href="https://www.youtube.com" target="_blank" class="social-link" title="YouTube">
+                    <i class="fab fa-youtube"></i>
+                  </a>
+                  <a href="https://www.linkedin.com" target="_blank" class="social-link" title="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                  </a>
+                  <a href="https://www.facebook.com" target="_blank" class="social-link" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                  </a>
+                  <!-- <a href="https://www.whatsapp.com" target="_blank" class="social-link" title="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                  </a> -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Links -->
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget">
+              <h4 class="widget-title">{{ $t('footer.quickLinks') }}</h4>
+              <ul class="footer-links">
+                <li><a href="https://www.presidentsoffice.gov.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkPresidency') }}</a></li>
+                <li><a href="https://www.treasury.gov.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkFinance') }}</a></li>
+                <li><a href="https://www.cbsl.gov.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkCbsl') }}</a></li>
+                <li><a href="https://www.ncgil.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkNcgi') }}</a></li>
+                <li><a href="https://agrimin.gov.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkAgri') }}</a></li>
+                <li><a href="https://investsrilanka.com/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkBoi') }}</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Map / Location -->
+          <div class="col-lg-3 col-md-6">
+            <div class="footer-widget map-widget">
+              <h4 class="widget-title">{{ $t('footer.ourLocation') }}</h4>
+              <div class="map-container">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d63372.90360784863!2d79.8405393!3d6.9137275!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae25924de870667%3A0xa0d952b7f92c711d!2sMinistry%20of%20Finance!5e0!3m2!1sen!2slk!4v1730696640970!5m2!1sen!2slk"
+                  style="border: 0"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help & Info -->
+          <div class="col-lg-2 col-md-6">
+            <div class="footer-widget">
+              <h4 class="widget-title">{{ $t('footer.help') }}</h4>
+              <ul class="footer-links">
+                <li><router-link to="/sitemap"><i class="fas fa-chevron-right fa-xs me-2"></i>{{ $t('nav.sitemap') }}</router-link></li>
+              </ul>
+              <div class="footer-helpline-wrapper mt-3 rounded-2xl overflow-hidden shadow-md border border-teal-500/30">
+                <img
+                  src="../../assets/footerimg.jpg"
+                  alt="1904 Government Information Center Helpline"
+                  class="footer-helpline-img w-full max-w-[220px] h-auto object-contain hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Footer -->
+    <div class="footer-bottom">
+      <div class="container">
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between">
+          <div class="text-md-start text-center mb-3 mb-md-0">
+            <p class="copyright-text">
+              {{ $t('footer.copyright', { year: currentYear }) }}
+            </p>
+            <p class="last-updated-text">
+              {{ $t('footer.lastUpdated', { date: lastUpdated }) }}
+            </p>
+          </div>
+          <div class="text-md-end text-center">
+            <p class="developer-text">
+              {{ $t('footer.templateBy') }}
+              <a
+                href="https://itmd.treasury.gov.lk/#/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="itmd-link"
+              >
+                {{ $t('footer.itmd') }}
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+</template>
+
+<style scoped>
+.footer-area {
+  background: #008E9B;
+  color: #fff;
+}
+
+.footer-top {
+  padding: 25px 0 15px 0 !important;
+  background-image: linear-gradient(to bottom, #008E9B 0%, #001a38 100%);
+  border-top: 5px solid #008E9B;
+}
+
+.widget-title {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  position: relative;
+  padding-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.widget-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 40px;
+  height: 3px;
+  background: #008E9B;
+}
+
+.contact-info-list {
+  padding: 0;
+  list-style: none;
+}
+
+.contact-info-list li {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.contact-info-list i {
+  color: #008E9B;
+  font-size: 1.1rem;
+  margin-top: 5px;
+}
+
+.footer-links {
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.footer-links li {
+  margin-bottom: 0;
+}
+
+.footer-links li a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  padding: 2px 0;
+  line-height: 1.3;
+  display: inline-block;
+}
+
+.footer-links li a.flex,
+.flex {
+  display: flex !important;
+}
+
+.items-start {
+  align-items: flex-start !important;
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.shrink-0 {
+  flex-shrink: 0 !important;
+}
+
+.mt-1 {
+  margin-top: 0.25rem !important;
+}
+
+.mt-1\.5 {
+  margin-top: 0.375rem !important;
+}
+
+.footer-links li a:hover {
+  color: #008E9B;
+  padding-left: 5px;
+}
+
+.map-container {
+  border-radius: 15px;
+  overflow: hidden;
+  height: 130px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.map-container iframe {
+  width: 100%;
+  height: 100%;
+}
+
+.footer-socials {
+  margin-top: 30px;
+}
+
+.social-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.social-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.social-link {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.social-link:hover {
+  background: #008E9B;
+  color: #fff;
+  border-color: #008E9B;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 142, 155, 0.4);
+}
+
+.social-link i {
+  font-size: 1rem;
+}
+
+.footer-bottom {
+  padding: 8px 0;
+  background: #00132b;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.copyright-text {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.3px;
+}
+
+.last-updated-text {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.2px;
+}
+
+.developer-text {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.itmd-link {
+  color: #008E9B;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.itmd-link:hover {
+  color: #5ce1e6;
+  text-decoration: underline;
+}
+
+@media (max-width: 991px) {
+  .footer-top {
+    padding: 60px 0 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .widget-title {
+    margin-bottom: 20px;
+  }
+  .footer-widget {
+    margin-bottom: 40px;
+  }
+  .footer-bottom {
+    padding: 8px 0;
+  }
+}
+
+/* 1904 Helpline Banner */
+.footer-helpline-wrapper {
+  margin-top: 1rem;
+  border-radius: 1rem; /* rounded-2xl */
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(20, 184, 166, 0.3); /* border-teal-500/30 */
+  background: rgba(255, 255, 255, 0.05);
+  display: block;
+  max-width: 220px;
+}
+
+.footer-helpline-img {
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.footer-helpline-wrapper:hover .footer-helpline-img,
+.footer-helpline-img:hover {
+  transform: scale(1.05);
+}
+</style>
+
+<script>
+export default {
+  props: {},
+
+  data() {
+    return {
+      Version: import.meta.env.VITE_Version, // get from env files
+      currentYear: new Date().getFullYear(),
+    };
+  },
+
+  computed: {
+    lastUpdated() {
+      const options = { day: 'numeric', month: 'long', year: 'numeric' };
+      return new Date().toLocaleDateString('en-GB', options);
+    },
+  },
+
+  methods: {},
+};
+</script>

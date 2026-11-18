@@ -1,0 +1,1616 @@
+<template>
+  <div class="p-6 lg:p-8 bg-slate-50/60 min-h-screen">
+    <div class="max-w-7xl mx-auto space-y-6">
+      
+      <!-- 1. TOP STATISTICS HEADER -->
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 pb-2">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200/80 text-cyan-800 text-xs font-bold uppercase tracking-wider mb-2">
+            <span class="h-1.5 w-1.5 rounded-full bg-[#008795]"></span>
+            DFD Media &amp; Institutional Memory
+          </div>
+          <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Manage Gallery
+          </h1>
+          <p class="text-slate-500 mt-1 text-sm">
+            Upload multi-photo event albums, field visit documentation, and institutional photo albums to the public portal.
+          </p>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 w-full xl:w-auto">
+          <!-- Total Albums & Photos -->
+          <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-[#008795] shrink-0">
+              <i class="fas fa-images text-sm"></i>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Albums / Photos</p>
+              <div class="flex items-baseline gap-1.5">
+                <span class="text-lg font-extrabold text-slate-900">{{ galleryItems.length }}</span>
+                <span class="text-xs font-semibold text-slate-400">({{ totalPhotosCount }} photos)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Workshops -->
+          <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+              <i class="fas fa-chalkboard-teacher text-sm"></i>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Workshops</p>
+              <span class="text-lg font-extrabold text-slate-900">{{ countCategory('Workshops') }}</span>
+            </div>
+          </div>
+
+          <!-- Field Visits -->
+          <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+              <i class="fas fa-map-marked-alt text-sm"></i>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Field Visits</p>
+              <span class="text-lg font-extrabold text-slate-900">{{ countCategory('Field Visits') }}</span>
+            </div>
+          </div>
+
+          <!-- Institutional -->
+          <div class="flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+              <i class="fas fa-landmark text-sm"></i>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Institutional</p>
+              <span class="text-lg font-extrabold text-slate-900">{{ countCategory('Institutional') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div v-if="showSuccessAlert && successMessage" class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-semibold flex items-center justify-between shadow-sm animate-in fade-in duration-200">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <span>{{ successMessage }}</span>
+        </div>
+        <button @click="dismissSuccessAlert" class="text-emerald-500 hover:text-emerald-700" title="Dismiss">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <div v-if="errorMessage" class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm font-semibold flex items-center justify-between shadow-sm animate-in fade-in duration-200">
+        <div class="flex items-center gap-2.5">
+          <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>{{ errorMessage }}</span>
+        </div>
+        <button @click="errorMessage = ''" class="text-rose-500 hover:text-rose-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+
+      <!-- MAIN SPLIT GRID -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- 2. UPLOAD ALBUM FORM CARD (5 cols) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl border border-slate-200/80 p-6 lg:p-7 shadow-sm sticky top-24">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-[#008795]">
+              <i class="fas fa-camera text-base"></i>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-slate-800">Upload Event Album</h2>
+              <p class="text-xs text-slate-400">Post event photos (up to 10 photos) to POST /api/v1/gallery</p>
+            </div>
+          </div>
+
+          <form @submit.prevent="handleUpload" class="space-y-4">
+            <!-- Title -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Event / Album Title <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i class="fas fa-heading text-xs"></i>
+                </div>
+                <input
+                  v-model="form.title"
+                  type="text"
+                  required
+                  placeholder="e.g. MSME Policy Workshop 2026"
+                  class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                />
+              </div>
+            </div>
+
+            <!-- Category Custom Dropdown -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Category <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative" ref="uploadCategoryDropdownRef">
+                <button
+                  type="button"
+                  @click="isUploadCategoryOpen = !isUploadCategoryOpen"
+                  class="w-full flex items-center justify-between rounded-2xl border border-slate-200 px-3.5 py-2.5 bg-white text-xs hover:border-[#008795] focus:outline-none focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] transition text-left cursor-pointer shadow-xs"
+                  :class="{ 'border-[#008795] ring-2 ring-[#008795]/20': isUploadCategoryOpen }"
+                >
+                  <div class="flex items-center gap-2.5 truncate">
+                    <i :class="[getCategoryIcon(form.category), 'text-xs text-[#008795]']"></i>
+                    <span class="font-semibold text-slate-800 text-xs truncate">
+                      {{ form.category || 'Select category' }}
+                    </span>
+                  </div>
+                  <svg
+                    class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                    :class="{ 'rotate-180': isUploadCategoryOpen }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <!-- Dropdown card -->
+                <div
+                  v-if="isUploadCategoryOpen"
+                  class="absolute left-0 right-0 top-full z-30 rounded-2xl shadow-xl border border-slate-100 bg-white overflow-hidden mt-1.5 animate-in fade-in zoom-in-95 duration-150"
+                >
+                  <div class="bg-slate-50/70 border-b text-[11px] font-semibold text-slate-400 px-4 py-2.5">
+                    Select Category
+                  </div>
+                  <div class="p-1.5 space-y-1">
+                    <button
+                      v-for="cat in categories"
+                      :key="cat.value"
+                      type="button"
+                      @click="selectUploadCategory(cat.value)"
+                      class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-colors cursor-pointer text-left"
+                      :class="form.category === cat.value
+                        ? 'bg-[#008795]/10 text-[#008795] font-semibold'
+                        : 'text-slate-700 hover:bg-slate-50 font-medium'"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <i :class="[cat.icon, 'text-xs', form.category === cat.value ? 'text-[#008795]' : 'text-slate-400']"></i>
+                        <span>{{ cat.label }}</span>
+                      </div>
+                      <svg
+                        v-if="form.category === cat.value"
+                        class="w-3.5 h-3.5 text-[#008795]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Event Date -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Event Date <span class="text-rose-500">*</span>
+              </label>
+              <VueDatePicker
+                v-model="uploadForm.eventDate"
+                model-type="yyyy-MM-dd"
+                format="yyyy-MM-dd"
+                :enable-time-picker="false"
+                auto-apply
+                :close-on-auto-apply="true"
+                placeholder="Select Event Date"
+                :teleport="true"
+              >
+                <template #input-icon>
+                  <i class="fas fa-calendar-alt text-[#008795] text-xs pl-3.5"></i>
+                </template>
+              </VueDatePicker>
+            </div>
+
+            <!-- Multiple Images Upload & Preview Grid -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Album Photos (1–10 Photos) <span class="text-rose-500">*</span>
+                </label>
+                <span class="text-[11px] font-bold" :class="selectedFiles.length >= 10 ? 'text-amber-600' : 'text-slate-400'">
+                  {{ selectedFiles.length }} / 10 photos
+                </span>
+              </div>
+
+              <!-- Drag and Drop Box -->
+              <div
+                v-if="selectedFiles.length < 10"
+                @dragover.prevent="isDragging = true"
+                @dragleave.prevent="isDragging = false"
+                @drop.prevent="handleFileDrop"
+                :class="[
+                  'relative border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer group mb-3',
+                  isDragging ? 'border-[#008795] bg-cyan-50/50' : 'border-slate-200 hover:border-[#008795] bg-slate-50/50 hover:bg-cyan-50/30'
+                ]"
+                @click="$refs.fileInput.click()"
+              >
+                <input
+                  ref="fileInput"
+                  type="file"
+                  multiple
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  @change="handleFileChange"
+                  class="hidden"
+                />
+
+                <div class="space-y-1.5 py-1">
+                  <div class="w-10 h-10 mx-auto rounded-xl bg-cyan-50 flex items-center justify-center text-[#008795] group-hover:scale-110 transition-transform">
+                    <i class="fas fa-images text-lg"></i>
+                  </div>
+                  <div>
+                    <span class="text-xs font-bold text-[#008795]">Click to select photos</span>
+                    <span class="text-xs text-slate-500"> or drag and drop</span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Select multiple photos (PNG, JPG, WEBP up to 10MB each)</p>
+                </div>
+              </div>
+
+              <!-- Staged Photos Grid -->
+              <div v-if="selectedFiles.length > 0" class="space-y-2">
+                <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+                  <span class="font-semibold text-slate-700">Staged Album Photos:</span>
+                  <button
+                    type="button"
+                    @click="clearAllSelectedFiles"
+                    class="text-[11px] text-rose-500 hover:text-rose-700 font-bold transition"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto p-1 custom-scrollbar">
+                  <div
+                    v-for="(item, idx) in selectedFiles"
+                    :key="item.id"
+                    class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-xs aspect-square"
+                  >
+                    <img :src="item.previewUrl" class="w-full h-full object-cover" :alt="item.file.name" />
+
+                    <!-- Cover Tag -->
+                    <span
+                      v-if="idx === 0"
+                      class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md bg-[#008795] text-white text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10"
+                    >
+                      Cover
+                    </span>
+                    <span
+                      v-else
+                      class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-bold z-10"
+                    >
+                      #{{ idx + 1 }}
+                    </span>
+
+                    <!-- Overlay Controls on Hover -->
+                    <div class="absolute inset-0 bg-slate-950/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-1.5 text-white">
+                      <div class="flex justify-end gap-1">
+                        <button
+                          type="button"
+                          @click.stop="removeSelectedFileAt(idx)"
+                          class="p-1 rounded bg-rose-600/90 hover:bg-rose-600 text-white transition"
+                          title="Remove photo"
+                        >
+                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+
+                      <div class="flex items-center justify-between gap-1">
+                        <!-- Move Left / Move Right -->
+                        <div class="flex items-center gap-1">
+                          <button
+                            type="button"
+                            :disabled="idx === 0"
+                            @click.stop="moveSelectedFile(idx, -1)"
+                            class="p-1 rounded bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move left"
+                          >
+                            <i class="fas fa-chevron-left text-[9px]"></i>
+                          </button>
+                          <button
+                            type="button"
+                            :disabled="idx === selectedFiles.length - 1"
+                            @click.stop="moveSelectedFile(idx, 1)"
+                            class="p-1 rounded bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move right"
+                          >
+                            <i class="fas fa-chevron-right text-[9px]"></i>
+                          </button>
+                        </div>
+
+                        <!-- Set as Cover button if not first -->
+                        <button
+                          v-if="idx !== 0"
+                          type="button"
+                          @click.stop="makeCoverFile(idx)"
+                          class="px-1.5 py-0.5 rounded bg-[#008795] text-[9px] font-bold hover:bg-[#009fb0] transition"
+                          title="Set as Cover Photo"
+                        >
+                          Set Cover
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-[11px] text-slate-400">
+                  <i class="fas fa-info-circle text-[#008795] me-1"></i>
+                  The first photo (#1) will be used as the album's primary cover thumbnail.
+                </p>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              :disabled="uploading || selectedFiles.length === 0"
+              class="w-full mt-2 inline-flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl bg-gradient-to-r from-[#008795] to-[#006071] hover:from-[#009fb0] hover:to-[#007c91] text-white text-sm font-bold shadow-lg shadow-cyan-900/15 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+            >
+              <svg v-if="uploading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <i v-else class="fas fa-cloud-upload-alt"></i>
+              <span>
+                {{ uploading ? 'Uploading Album...' : (selectedFiles.length > 1 ? `Publish ${selectedFiles.length}-Photo Album` : 'Publish to Gallery') }}
+              </span>
+            </button>
+          </form>
+        </div>
+
+        <!-- 3. GALLERY ALBUM CARDS LIST (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 lg:p-7 shadow-sm flex flex-col">
+          
+          <!-- Filter & Search Bar (Static at top) -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-100 shrink-0">
+            <!-- Search -->
+            <div class="relative flex-1 max-w-xs">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </span>
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Search event albums..."
+                class="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-1 focus:ring-[#008795] outline-none transition text-slate-800"
+              />
+            </div>
+
+            <!-- Category Pills -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button
+                v-for="cat in ['All', 'Workshops', 'Field Visits', 'Institutional']"
+                :key="cat"
+                @click="selectedCategory = cat"
+                :class="[
+                  'px-3 py-1 rounded-xl text-xs font-bold transition',
+                  selectedCategory === cat
+                    ? 'bg-[#008795] text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                ]"
+              >
+                {{ cat }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Scrollable Gallery Content (Independently scrollable) -->
+          <div class="max-h-[620px] overflow-y-auto pr-2 pt-4 custom-scrollbar">
+            <!-- Loading State -->
+            <div v-if="loading" class="py-16 text-center text-slate-500">
+              <svg class="animate-spin h-6 w-6 text-[#008795] mx-auto mb-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <p class="text-xs font-bold text-slate-600">Loading gallery albums...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div v-else-if="filteredItems.length === 0" class="py-16 text-center text-slate-400">
+              <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                <i class="fas fa-images text-2xl"></i>
+              </div>
+              <p class="text-sm font-bold text-slate-700">No gallery albums found</p>
+              <p class="text-xs text-slate-400 mt-1">Upload event photos using the form on the left.</p>
+            </div>
+
+            <!-- Cards Grid -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                v-for="item in filteredItems"
+                :key="item.id"
+                class="group bg-slate-50/70 hover:bg-white rounded-2xl border border-slate-200/80 hover:border-cyan-500/50 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col"
+              >
+                <!-- Thumbnail -->
+                <div class="relative h-44 bg-slate-200 overflow-hidden">
+                  <img
+                    v-if="item.imageUrl"
+                    :src="resolveImageUrl(item.imageUrl)"
+                    :alt="item.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    @error="onImageError"
+                  />
+                  <div v-else class="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100">
+                    <i class="fas fa-image text-3xl"></i>
+                  </div>
+
+                  <!-- Category badge overlaid -->
+                  <span
+                    :class="[
+                      'absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider backdrop-blur-md shadow-sm',
+                      categoryBadgeClass(item.category)
+                    ]"
+                  >
+                    {{ item.category }}
+                  </span>
+
+                  <!-- Photo count badge -->
+                  <span
+                    class="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-slate-900/85 backdrop-blur-md text-white text-[10px] font-extrabold tracking-wide flex items-center gap-1.5 shadow-md border border-white/20"
+                  >
+                    <i class="fas fa-images text-[10px] text-cyan-400"></i>
+                    <span>{{ getItemPhotos(item).length }} {{ getItemPhotos(item).length === 1 ? 'Photo' : 'Photos' }}</span>
+                  </span>
+
+                  <!-- Action buttons: Edit & Delete -->
+                  <div class="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+                    <button
+                      type="button"
+                      @click.stop="openEditModal(item)"
+                      class="w-8 h-8 rounded-lg bg-white/95 hover:bg-[#008795] text-slate-600 hover:text-white transition-colors flex items-center justify-center shadow-sm"
+                      title="Edit Album"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      @click.stop="openDeleteModal(item)"
+                      class="w-8 h-8 rounded-lg bg-white/95 hover:bg-rose-600 text-slate-600 hover:text-white transition-colors flex items-center justify-center shadow-sm"
+                      title="Delete Album"
+                    >
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Info -->
+                <div class="p-4 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 class="text-sm font-extrabold text-slate-800 line-clamp-1 group-hover:text-[#008795] transition-colors" :title="item.title">
+                      {{ item.title }}
+                    </h3>
+                    <div class="flex items-center gap-1.5 text-xs text-slate-500 mt-1 font-medium">
+                      <i class="far fa-calendar-alt text-[#008795] text-[11px]"></i>
+                      <span>{{ item.eventDate || 'N/A' }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Footer details -->
+                  <div class="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>ID: #{{ item.id }}</span>
+                    <span class="font-semibold text-slate-600 flex items-center gap-1">
+                      <i class="fas fa-layer-group text-[10px] text-[#008795]"></i>
+                      <span>{{ getItemPhotos(item).length }} {{ getItemPhotos(item).length === 1 ? 'Photo' : 'Photos' }}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- EDIT ALBUM MODAL -->
+      <div
+        v-if="isEditModalOpen"
+        @click.self="!isUpdating && closeEditModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto"
+      >
+        <div class="relative w-full max-w-xl rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-slate-100 my-8 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+          <!-- Header -->
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-[#008795]">
+                <i class="fas fa-edit text-base"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-800">Edit Event Album</h3>
+                <p class="text-xs text-slate-400">Update event title, category, date, and manage album photos</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              :disabled="isUpdating"
+              @click="closeEditModal"
+              class="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50"
+              title="Close"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Error Alert inside modal -->
+          <div v-if="editErrorMessage" class="p-3 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{{ editErrorMessage }}</span>
+            </div>
+            <button type="button" @click="editErrorMessage = ''" class="text-rose-500 hover:text-rose-700">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+
+          <!-- Form -->
+          <form @submit.prevent="handleUpdate" class="space-y-4">
+            <!-- Title -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Event / Album Title <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <i class="fas fa-heading text-xs"></i>
+                </div>
+                <input
+                  v-model="editForm.title"
+                  type="text"
+                  required
+                  placeholder="e.g. MSME Policy Workshop 2026"
+                  class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                />
+              </div>
+            </div>
+
+            <!-- Category Custom Dropdown -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Category <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative" ref="editCategoryDropdownRef">
+                <button
+                  type="button"
+                  @click="isEditCategoryOpen = !isEditCategoryOpen"
+                  class="w-full flex items-center justify-between rounded-2xl border border-slate-200 px-3.5 py-2.5 bg-white text-xs hover:border-[#008795] focus:outline-none focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] transition text-left cursor-pointer shadow-xs"
+                  :class="{ 'border-[#008795] ring-2 ring-[#008795]/20': isEditCategoryOpen }"
+                >
+                  <div class="flex items-center gap-2.5 truncate">
+                    <i :class="[getCategoryIcon(editForm.category), 'text-xs text-[#008795]']"></i>
+                    <span class="font-semibold text-slate-800 text-xs truncate">
+                      {{ editForm.category || 'Select category' }}
+                    </span>
+                  </div>
+                  <svg
+                    class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 ml-2"
+                    :class="{ 'rotate-180': isEditCategoryOpen }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <!-- Dropdown card -->
+                <div
+                  v-if="isEditCategoryOpen"
+                  class="absolute left-0 right-0 top-full z-40 rounded-2xl shadow-xl border border-slate-100 bg-white overflow-hidden mt-1.5 animate-in fade-in zoom-in-95 duration-150"
+                >
+                  <div class="bg-slate-50/70 border-b text-[11px] font-semibold text-slate-400 px-4 py-2.5">
+                    Select Category
+                  </div>
+                  <div class="p-1.5 space-y-1">
+                    <button
+                      v-for="cat in categories"
+                      :key="cat.value"
+                      type="button"
+                      @click="selectEditCategory(cat.value)"
+                      class="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-colors cursor-pointer text-left"
+                      :class="editForm.category === cat.value
+                        ? 'bg-[#008795]/10 text-[#008795] font-semibold'
+                        : 'text-slate-700 hover:bg-slate-50 font-medium'"
+                    >
+                      <div class="flex items-center gap-2.5">
+                        <i :class="[cat.icon, 'text-xs', editForm.category === cat.value ? 'text-[#008795]' : 'text-slate-400']"></i>
+                        <span>{{ cat.label }}</span>
+                      </div>
+                      <svg
+                        v-if="editForm.category === cat.value"
+                        class="w-3.5 h-3.5 text-[#008795]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Event Date -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Event Date <span class="text-rose-500">*</span>
+              </label>
+              <VueDatePicker
+                v-model="editForm.eventDate"
+                model-type="yyyy-MM-dd"
+                format="yyyy-MM-dd"
+                :enable-time-picker="false"
+                auto-apply
+                :close-on-auto-apply="true"
+                placeholder="Select Event Date"
+                :teleport="true"
+              >
+                <template #input-icon>
+                  <i class="fas fa-calendar-alt text-[#008795] text-xs pl-3.5"></i>
+                </template>
+              </VueDatePicker>
+            </div>
+
+            <!-- Album Photos Management in Edit Modal -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Album Photos ({{ editPhotos.length }} / 10) <span class="text-rose-500">*</span>
+                </label>
+                <label
+                  v-if="editPhotos.length < 10"
+                  class="text-xs font-bold text-[#008795] hover:text-[#006071] cursor-pointer inline-flex items-center gap-1.5 bg-cyan-50 px-2.5 py-1 rounded-lg border border-cyan-200/80 transition"
+                >
+                  <i class="fas fa-plus text-[10px]"></i>
+                  <span>Add Photos</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    @change="handleEditAddFiles"
+                    class="hidden"
+                  />
+                </label>
+              </div>
+
+              <!-- Grid of Edit Photos (both existing and newly added) -->
+              <div v-if="editPhotos.length > 0" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-56 overflow-y-auto p-2 custom-scrollbar bg-slate-50 rounded-2xl border border-slate-200/80">
+                <div
+                  v-for="(item, idx) in editPhotos"
+                  :key="item.id || idx"
+                  class="relative group rounded-xl overflow-hidden border border-slate-200 bg-white shadow-xs aspect-square"
+                >
+                  <img :src="item.previewUrl" class="w-full h-full object-cover" alt="Album photo" />
+
+                  <!-- Cover Badge -->
+                  <span
+                    v-if="idx === 0"
+                    class="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-[#008795] text-white text-[9px] font-extrabold uppercase tracking-wider shadow-sm z-10"
+                  >
+                    Cover
+                  </span>
+                  <span
+                    v-else
+                    class="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[9px] font-bold z-10"
+                  >
+                    #{{ idx + 1 }}
+                  </span>
+
+                  <!-- New badge if newly added -->
+                  <span
+                    v-if="item.isNew"
+                    class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[8px] font-bold z-10"
+                  >
+                    NEW
+                  </span>
+
+                  <!-- Hover Overlay Controls -->
+                  <div class="absolute inset-0 bg-slate-950/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-1 text-white">
+                    <div class="flex justify-end gap-1">
+                      <button
+                        type="button"
+                        @click.stop="removeEditPhotoAt(idx)"
+                        class="p-1 rounded bg-rose-600/90 hover:bg-rose-600 text-white transition"
+                        title="Remove photo from album"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-0.5">
+                      <div class="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          :disabled="idx === 0"
+                          @click.stop="moveEditPhoto(idx, -1)"
+                          class="p-1 rounded bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Move left"
+                        >
+                          <i class="fas fa-chevron-left text-[8px]"></i>
+                        </button>
+                        <button
+                          type="button"
+                          :disabled="idx === editPhotos.length - 1"
+                          @click.stop="moveEditPhoto(idx, 1)"
+                          class="p-1 rounded bg-white/20 hover:bg-white/40 disabled:opacity-30 disabled:cursor-not-allowed"
+                          title="Move right"
+                        >
+                          <i class="fas fa-chevron-right text-[8px]"></i>
+                        </button>
+                      </div>
+
+                      <button
+                        v-if="idx !== 0"
+                        type="button"
+                        @click.stop="makeEditCover(idx)"
+                        class="px-1 py-0.5 rounded bg-[#008795] text-[8px] font-bold hover:bg-[#009fb0] transition"
+                        title="Set as Cover"
+                      >
+                        Cover
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty state if all photos removed -->
+              <div v-else class="p-5 text-center bg-slate-50 rounded-2xl border border-dashed border-rose-300">
+                <p class="text-xs font-bold text-rose-600">All photos removed!</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Please add at least 1 photo for this album.</p>
+              </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                :disabled="isUpdating"
+                @click="closeEditModal"
+                class="px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                :disabled="isUpdating || editPhotos.length === 0"
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#008795] to-[#006071] hover:from-[#009fb0] hover:to-[#007c91] text-white text-sm font-bold shadow-md shadow-cyan-900/15 transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                <svg v-if="isUpdating" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <i v-else class="fas fa-check"></i>
+                <span>{{ isUpdating ? 'Saving Album...' : 'Save Album' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- DELETE CONFIRMATION MODAL -->
+      <div
+        v-if="showDeleteModal"
+        @click.self="!isDeleting && closeDeleteModal()"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+      >
+        <div class="relative w-full max-w-md rounded-3xl bg-[#002b33] border border-cyan-500/20 p-7 sm:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6),0_0_30px_rgba(6,182,212,0.15)] overflow-hidden text-center animate-in fade-in zoom-in duration-200">
+          <div class="pointer-events-none absolute -top-16 -right-16 w-36 h-36 rounded-full bg-cyan-400/10 blur-3xl"></div>
+          <div class="pointer-events-none absolute -bottom-16 -left-16 w-36 h-36 rounded-full bg-red-500/15 blur-3xl"></div>
+
+          <div class="relative z-10 flex flex-col items-center">
+            <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-500/15 border border-red-500/30 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.25)]">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+
+            <h3 class="text-xl font-extrabold tracking-tight text-white">
+              Delete Gallery Album?
+            </h3>
+            <p class="mt-2 text-sm text-cyan-100/70 leading-relaxed">
+              Are you sure you want to permanently delete this event album? This will remove all image files and database records.
+            </p>
+
+            <div v-if="itemToDelete" class="mt-4 w-full p-3.5 rounded-2xl bg-[#001f24] border border-cyan-500/20 flex items-center gap-3 text-left">
+              <img
+                v-if="itemToDelete.imageUrl"
+                :src="resolveImageUrl(itemToDelete.imageUrl)"
+                class="w-12 h-12 rounded-xl object-cover border border-cyan-500/30 shrink-0"
+              />
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-bold text-white truncate">{{ itemToDelete.title }}</p>
+                <p class="text-xs text-cyan-300">
+                  {{ itemToDelete.category }} • {{ getItemPhotos(itemToDelete).length }} photos
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-7 flex w-full items-center gap-3">
+              <button
+                type="button"
+                :disabled="isDeleting"
+                @click="closeDeleteModal"
+                class="flex-1 rounded-xl border border-cyan-400/25 bg-white/5 hover:bg-white/10 px-4 py-2.5 text-sm font-bold text-cyan-100 hover:text-white transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                :disabled="isDeleting"
+                @click="confirmDelete"
+                class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-500 hover:to-rose-600 px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(225,29,72,0.35)] hover:shadow-[0_10px_25px_rgba(225,29,72,0.5)] transition-all disabled:opacity-60"
+              >
+                <svg v-if="isDeleting" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>{{ isDeleting ? 'Deleting...' : 'Yes, Delete' }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import axios from '../axiosInstance';
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
+
+// State
+const galleryItems = ref([]);
+const loading = ref(false);
+const uploading = ref(false);
+const isDeleting = ref(false);
+const isDragging = ref(false);
+
+const selectedCategory = ref('All');
+const searchQuery = ref('');
+
+const successMessage = ref('');
+const showSuccessAlert = ref(false);
+let successTimeout = null;
+
+const showSuccess = (message) => {
+  if (successTimeout) {
+    clearTimeout(successTimeout);
+    successTimeout = null;
+  }
+  successMessage.value = message;
+  showSuccessAlert.value = true;
+  successTimeout = setTimeout(() => {
+    showSuccessAlert.value = false;
+    successMessage.value = '';
+    successTimeout = null;
+  }, 3500);
+};
+
+const dismissSuccessAlert = () => {
+  if (successTimeout) {
+    clearTimeout(successTimeout);
+    successTimeout = null;
+  }
+  showSuccessAlert.value = false;
+  successMessage.value = '';
+};
+
+onUnmounted(() => {
+  if (successTimeout) {
+    clearTimeout(successTimeout);
+    successTimeout = null;
+  }
+  document.removeEventListener('click', handleClickOutside);
+  // Revoke object URLs on component unmount
+  clearAllSelectedFiles();
+  editPhotos.value.forEach(p => {
+    if (p.isNew && p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+  });
+});
+
+const errorMessage = ref('');
+
+// Category metadata & custom dropdown state
+const categories = [
+  { label: 'Workshops', value: 'Workshops', icon: 'fas fa-chalkboard-teacher' },
+  { label: 'Field Visits', value: 'Field Visits', icon: 'fas fa-map-marked-alt' },
+  { label: 'Institutional', value: 'Institutional', icon: 'fas fa-landmark' }
+];
+
+const getCategoryIcon = (categoryValue) => {
+  const found = categories.find(c => c.value === categoryValue);
+  return found ? found.icon : 'fas fa-folder';
+};
+
+const isUploadCategoryOpen = ref(false);
+const isEditCategoryOpen = ref(false);
+const uploadCategoryDropdownRef = ref(null);
+const editCategoryDropdownRef = ref(null);
+
+const selectUploadCategory = (value) => {
+  form.value.category = value;
+  isUploadCategoryOpen.value = false;
+};
+
+const selectEditCategory = (value) => {
+  editForm.value.category = value;
+  isEditCategoryOpen.value = false;
+};
+
+const handleClickOutside = (event) => {
+  if (
+    uploadCategoryDropdownRef.value &&
+    !uploadCategoryDropdownRef.value.contains(event.target)
+  ) {
+    isUploadCategoryOpen.value = false;
+  }
+  if (
+    editCategoryDropdownRef.value &&
+    !editCategoryDropdownRef.value.contains(event.target)
+  ) {
+    isEditCategoryOpen.value = false;
+  }
+};
+
+const form = ref({
+  title: '',
+  category: 'Workshops',
+  eventDate: new Date().toISOString().split('T')[0]
+});
+const uploadForm = form;
+
+// Selected files staging queue for Create (up to 10 photos)
+const selectedFiles = ref([]);
+
+const showDeleteModal = ref(false);
+const itemToDelete = ref(null);
+
+// Edit State
+const isEditModalOpen = ref(false);
+const showEditModal = isEditModalOpen;
+const isUpdating = ref(false);
+const editErrorMessage = ref('');
+const editPhotos = ref([]);
+
+const editForm = ref({
+  id: null,
+  title: '',
+  category: 'Workshops',
+  eventDate: '',
+  imageUrl: ''
+});
+
+// Category badge classes
+const categoryBadgeClass = (category) => {
+  switch (category) {
+    case 'Workshops':
+      return 'bg-indigo-600/90 text-white';
+    case 'Field Visits':
+      return 'bg-emerald-600/90 text-white';
+    case 'Institutional':
+      return 'bg-amber-600/90 text-white';
+    default:
+      return 'bg-slate-700/90 text-white';
+  }
+};
+
+// Robust helper to extract full list of photos for an item
+const getItemPhotos = (item) => {
+  if (!item) return [];
+  if (Array.isArray(item.images) && item.images.length > 0) {
+    return item.images;
+  }
+  if (typeof item.images === 'string' && item.images.trim()) {
+    try {
+      const parsed = JSON.parse(item.images);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) {}
+    // If comma-separated
+    const split = item.images.split(',').map(s => s.trim()).filter(Boolean);
+    if (split.length > 0) return split;
+  }
+  return item.imageUrl ? [item.imageUrl] : [];
+};
+
+const totalPhotosCount = computed(() => {
+  return galleryItems.value.reduce((acc, item) => acc + getItemPhotos(item).length, 0);
+});
+
+const countCategory = (category) => {
+  return galleryItems.value.filter(item => item.category === category).length;
+};
+
+// URL resolver for uploaded files
+const resolveImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8096';
+  return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+};
+
+const onImageError = (e) => {
+  e.target.style.display = 'none';
+};
+
+// File handlers for Create Album Form
+const handleFileChange = (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length > 0) {
+    addFilesToSelection(files);
+  }
+  // reset input so the same files can be chosen again if needed
+  e.target.value = '';
+};
+
+const handleFileDrop = (e) => {
+  isDragging.value = false;
+  const files = Array.from(e.dataTransfer.files || []).filter(f => f.type.startsWith('image/'));
+  if (files.length > 0) {
+    addFilesToSelection(files);
+  } else {
+    errorMessage.value = 'Please drop valid image files (PNG, JPG, WEBP).';
+  }
+};
+
+const addFilesToSelection = (files) => {
+  errorMessage.value = '';
+  const remainingSlots = 10 - selectedFiles.value.length;
+  if (remainingSlots <= 0) {
+    errorMessage.value = 'A maximum of 10 photos is allowed per event album.';
+    return;
+  }
+
+  const filesToAdd = files.slice(0, remainingSlots);
+  if (files.length > remainingSlots) {
+    errorMessage.value = `Only ${remainingSlots} more photo(s) could be added (max 10 photos per album).`;
+  }
+
+  for (const file of filesToAdd) {
+    if (!file.type.startsWith('image/')) continue;
+    if (file.size > 10 * 1024 * 1024) {
+      errorMessage.value = `File "${file.name}" exceeds the 10MB limit.`;
+      continue;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    selectedFiles.value.push({
+      id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      file,
+      previewUrl
+    });
+  }
+};
+
+const removeSelectedFileAt = (index) => {
+  const item = selectedFiles.value[index];
+  if (item && item.previewUrl) {
+    URL.revokeObjectURL(item.previewUrl);
+  }
+  selectedFiles.value.splice(index, 1);
+};
+
+const clearAllSelectedFiles = () => {
+  selectedFiles.value.forEach(item => {
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  });
+  selectedFiles.value = [];
+};
+
+const moveSelectedFile = (index, direction) => {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= selectedFiles.value.length) return;
+  const temp = selectedFiles.value[index];
+  selectedFiles.value[index] = selectedFiles.value[newIndex];
+  selectedFiles.value[newIndex] = temp;
+};
+
+const makeCoverFile = (index) => {
+  if (index <= 0 || index >= selectedFiles.value.length) return;
+  const [item] = selectedFiles.value.splice(index, 1);
+  selectedFiles.value.unshift(item);
+};
+
+// Edit Modal File Handlers
+const handleEditAddFiles = (e) => {
+  const files = Array.from(e.target.files || []);
+  if (files.length > 0) {
+    editErrorMessage.value = '';
+    const remainingSlots = 10 - editPhotos.value.length;
+    if (remainingSlots <= 0) {
+      editErrorMessage.value = 'A maximum of 10 photos is allowed per event album.';
+      return;
+    }
+
+    const filesToAdd = files.slice(0, remainingSlots);
+    for (const file of filesToAdd) {
+      if (!file.type.startsWith('image/')) continue;
+      if (file.size > 10 * 1024 * 1024) {
+        editErrorMessage.value = `File "${file.name}" exceeds the 10MB limit.`;
+        continue;
+      }
+      const previewUrl = URL.createObjectURL(file);
+      editPhotos.value.push({
+        id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        isNew: true,
+        file,
+        previewUrl,
+        url: ''
+      });
+    }
+  }
+  e.target.value = '';
+};
+
+const removeEditPhotoAt = (index) => {
+  const item = editPhotos.value[index];
+  if (item && item.isNew && item.previewUrl) {
+    URL.revokeObjectURL(item.previewUrl);
+  }
+  editPhotos.value.splice(index, 1);
+};
+
+const moveEditPhoto = (index, direction) => {
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= editPhotos.value.length) return;
+  const temp = editPhotos.value[index];
+  editPhotos.value[index] = editPhotos.value[newIndex];
+  editPhotos.value[newIndex] = temp;
+};
+
+const makeEditCover = (index) => {
+  if (index <= 0 || index >= editPhotos.value.length) return;
+  const [item] = editPhotos.value.splice(index, 1);
+  editPhotos.value.unshift(item);
+};
+
+// Filtering
+const filteredItems = computed(() => {
+  return galleryItems.value.filter(item => {
+    const matchesCategory =
+      selectedCategory.value === 'All' ||
+      item.category === selectedCategory.value;
+
+    if (!matchesCategory) return false;
+
+    if (!searchQuery.value.trim()) return true;
+    const q = searchQuery.value.toLowerCase().trim();
+    return (
+      (item.title || '').toLowerCase().includes(q) ||
+      (item.category || '').toLowerCase().includes(q) ||
+      (item.eventDate || '').toLowerCase().includes(q)
+    );
+  });
+});
+
+// Fetch Gallery
+const fetchGallery = async () => {
+  loading.value = true;
+  try {
+    const response = await axios.get('/api/v1/gallery');
+    galleryItems.value = response.data || [];
+  } catch (error) {
+    console.error('Failed to load gallery items:', error);
+    errorMessage.value = 'Failed to load gallery items.';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Upload Event Album
+const handleUpload = async () => {
+  if (selectedFiles.value.length === 0) {
+    errorMessage.value = 'Please select at least 1 image file for this event album.';
+    return;
+  }
+
+  uploading.value = true;
+  errorMessage.value = '';
+  dismissSuccessAlert();
+
+  try {
+    const formData = new FormData();
+    formData.append('title', form.value.title.trim());
+    formData.append('category', form.value.category);
+    formData.append('eventDate', form.value.eventDate);
+
+    selectedFiles.value.forEach(item => {
+      formData.append('images', item.file);
+    });
+
+    await axios.post('/api/v1/gallery', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    const count = selectedFiles.value.length;
+    showSuccess(`Event album with ${count} photo${count > 1 ? 's' : ''} uploaded to gallery successfully!`);
+    form.value.title = '';
+    clearAllSelectedFiles();
+    await fetchGallery();
+  } catch (error) {
+    console.error('Failed to upload gallery album:', error);
+    errorMessage.value = 'Failed to upload album photos. Please check file format and server connection.';
+  } finally {
+    uploading.value = false;
+  }
+};
+
+// Edit Handlers
+const formatDateForInput = (dateStr) => {
+  if (!dateStr) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  try {
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split('T')[0];
+    }
+  } catch (e) {
+    // fallback
+  }
+  return dateStr;
+};
+
+const openEditModal = (item) => {
+  editErrorMessage.value = '';
+  isEditCategoryOpen.value = false;
+
+  const photos = getItemPhotos(item);
+  editPhotos.value = photos.map((url, idx) => ({
+    id: `existing-${idx}-${Date.now()}`,
+    isNew: false,
+    url: url,
+    previewUrl: resolveImageUrl(url),
+    file: null
+  }));
+
+  editForm.value = {
+    id: item.id,
+    title: item.title || '',
+    category: item.category || 'Workshops',
+    eventDate: formatDateForInput(item.eventDate),
+    imageUrl: item.imageUrl || ''
+  };
+  isEditModalOpen.value = true;
+};
+
+const closeEditModal = () => {
+  if (isUpdating.value) return;
+  isEditModalOpen.value = false;
+  isEditCategoryOpen.value = false;
+  editErrorMessage.value = '';
+
+  editPhotos.value.forEach(p => {
+    if (p.isNew && p.previewUrl) URL.revokeObjectURL(p.previewUrl);
+  });
+  editPhotos.value = [];
+  editForm.value = {
+    id: null,
+    title: '',
+    category: 'Workshops',
+    eventDate: '',
+    imageUrl: ''
+  };
+};
+
+const handleUpdate = async () => {
+  if (!editForm.value.title?.trim()) {
+    editErrorMessage.value = 'Please provide an album title.';
+    return;
+  }
+  if (!editForm.value.category) {
+    editErrorMessage.value = 'Please select a category.';
+    return;
+  }
+  if (!editForm.value.eventDate) {
+    editErrorMessage.value = 'Please select an event date.';
+    return;
+  }
+  if (editPhotos.value.length === 0) {
+    editErrorMessage.value = 'Please include at least 1 photograph in this album.';
+    return;
+  }
+
+  isUpdating.value = true;
+  editErrorMessage.value = '';
+  errorMessage.value = '';
+
+  try {
+    const formData = new FormData();
+    formData.append('title', editForm.value.title.trim());
+    formData.append('category', editForm.value.category);
+    formData.append('eventDate', editForm.value.eventDate);
+
+    // Retained existing photos (order is preserved)
+    const retainedExisting = editPhotos.value.filter(p => !p.isNew).map(p => p.url);
+    formData.append('existingImages', JSON.stringify(retainedExisting));
+
+    // Cover image indication if first photo is existing
+    if (editPhotos.value.length > 0 && !editPhotos.value[0].isNew) {
+      formData.append('coverImage', editPhotos.value[0].url);
+    }
+
+    // Newly added photos
+    const newFiles = editPhotos.value.filter(p => p.isNew && p.file);
+    newFiles.forEach(item => {
+      formData.append('images', item.file);
+    });
+
+    await axios.put(`/api/v1/gallery/${editForm.value.id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    showSuccess('Gallery event album updated successfully!');
+    closeEditModal();
+    await fetchGallery();
+  } catch (error) {
+    console.error('Failed to update gallery album:', error);
+    editErrorMessage.value =
+      error.response?.data?.message ||
+      (typeof error.response?.data === 'string' ? error.response.data : null) ||
+      'Failed to update album. Please check your connection and try again.';
+  } finally {
+    isUpdating.value = false;
+  }
+};
+
+// Delete Handlers
+const openDeleteModal = (item) => {
+  itemToDelete.value = item;
+  showDeleteModal.value = true;
+};
+
+const closeDeleteModal = () => {
+  if (isDeleting.value) return;
+  showDeleteModal.value = false;
+  itemToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (!itemToDelete.value) return;
+  isDeleting.value = true;
+  errorMessage.value = '';
+
+  try {
+    await axios.delete(`/api/v1/gallery/${itemToDelete.value.id}`);
+    galleryItems.value = galleryItems.value.filter(i => i.id !== itemToDelete.value.id);
+    showSuccess('Event album deleted from gallery successfully.');
+    showDeleteModal.value = false;
+    itemToDelete.value = null;
+    await fetchGallery();
+  } catch (error) {
+    console.error('Failed to delete gallery item:', error);
+    errorMessage.value = 'Failed to delete gallery item.';
+  } finally {
+    isDeleting.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchGallery();
+  document.addEventListener('click', handleClickOutside);
+});
+</script>
+
+<style scoped>
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+</style>
+
+<style>
+/* Modern Elegant VueDatePicker Styling matching Portal UI */
+:root {
+  --dp-primary-color: #008795;
+  --dp-primary-text-color: #ffffff;
+  --dp-border-radius: 16px;
+  --dp-cell-border-radius: 10px;
+  --dp-hover-color: rgba(0, 135, 149, 0.08);
+  --dp-hover-text-color: #008795;
+  --dp-hover-icon-color: #008795;
+  --dp-border-color: #e2e8f0;
+  --dp-menu-border-color: #f1f5f9;
+  --dp-font-family: inherit;
+}
+
+.dp--theme-light,
+.dp__theme_light {
+  --dp-primary-color: #008795;
+  --dp-primary-text-color: #ffffff;
+  --dp-border-radius: 16px;
+  --dp-cell-border-radius: 10px;
+  --dp-hover-color: rgba(0, 135, 149, 0.08);
+  --dp-hover-text-color: #008795;
+  --dp-hover-icon-color: #008795;
+  --dp-border-color: #e2e8f0;
+  --dp-menu-border-color: #f1f5f9;
+  --dp-highlight-color: rgba(0, 135, 149, 0.1);
+}
+
+/* Rounded-2xl pill input */
+.dp--input,
+.dp__input {
+  border-radius: 1rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  padding-left: 2.6rem !important;
+  padding-right: 1rem !important;
+  height: 42px !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.dp--input:hover,
+.dp__input:hover {
+  border-color: #008795 !important;
+}
+
+.dp--input:focus,
+.dp--input-focus,
+.dp__input:focus,
+.dp__input_focus {
+  background-color: #ffffff !important;
+  border-color: #008795 !important;
+  box-shadow: 0 0 0 2px rgba(0, 135, 149, 0.2) !important;
+  outline: none !important;
+}
+
+/* Left Icon */
+.dp--input-icon,
+.dp__input_icon {
+  left: 0 !important;
+  padding-left: 0.9rem !important;
+  color: #008795 !important;
+}
+
+/* Popover Menu with Smooth Shadow & Rounded Corners */
+.dp--menu,
+.dp__menu {
+  border-radius: 1.25rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #f1f5f9 !important;
+  background-color: #ffffff !important;
+  padding: 10px !important;
+  font-family: inherit !important;
+}
+
+/* Calendar Header */
+.dp--calendar-header,
+.dp__calendar_header {
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.dp--calendar-header-cell,
+.dp__calendar_header_cell {
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding-bottom: 8px !important;
+}
+
+/* Month and Year Navigation */
+.dp--month-year-row,
+.dp__month_year_row {
+  margin-bottom: 6px !important;
+}
+
+.dp--month-year-select,
+.dp__month_year_select {
+  font-weight: 700 !important;
+  font-size: 0.875rem !important;
+  color: #0f172a !important;
+  border-radius: 10px !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.dp--month-year-select:hover,
+.dp__month_year_select:hover {
+  background-color: rgba(0, 135, 149, 0.08) !important;
+  color: #008795 !important;
+}
+
+.dp--inner-nav,
+.dp__inner_nav {
+  border-radius: 10px !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.dp--inner-nav:hover,
+.dp__inner_nav:hover {
+  background-color: rgba(0, 135, 149, 0.08) !important;
+  color: #008795 !important;
+}
+
+/* Rounded Calendar Grid Cells */
+.dp--cell-inner,
+.dp__cell_inner {
+  border-radius: 10px !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.dp--cell-inner:hover,
+.dp__cell_inner:hover {
+  background-color: rgba(0, 135, 149, 0.1) !important;
+  color: #008795 !important;
+}
+
+/* Primary Active / Selected Date */
+.dp--active,
+.dp__active_date {
+  background: #008795 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 10px rgba(0, 135, 149, 0.35) !important;
+}
+
+/* Today Cell Indicator */
+.dp--today,
+.dp__today {
+  border: 1.5px solid #008795 !important;
+}
+
+/* Overlay month/year picker grid cells */
+.dp--overlay-cell-active {
+  background: #008795 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+}
+
+.dp--overlay-cell {
+  border-radius: 10px !important;
+  font-size: 0.8125rem !important;
+  transition: all 0.15s ease-in-out !important;
+}
+
+.dp--overlay-cell:hover {
+  background-color: rgba(0, 135, 149, 0.08) !important;
+  color: #008795 !important;
+}
+</style>
