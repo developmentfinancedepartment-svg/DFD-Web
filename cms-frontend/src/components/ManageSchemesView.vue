@@ -160,18 +160,25 @@
                       <div class="font-bold text-slate-800 text-sm truncate" :title="scheme.title">
                         {{ scheme.title }}
                       </div>
-                      <div class="mt-0.5">
+                      <div class="mt-0.5 flex items-center gap-1.5 flex-wrap">
                         <span
                           v-if="isOtherFacility(scheme)"
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 uppercase tracking-wider whitespace-nowrap"
                         >
-                          OTHER
+                          OTHER FACILITY
                         </span>
                         <span
                           v-else
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80 uppercase tracking-wider whitespace-nowrap"
                         >
                           LOAN
+                        </span>
+                        <span
+                          v-if="scheme.showOtherBadge || scheme.show_other_badge"
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500 text-white uppercase tracking-wider whitespace-nowrap shadow-2xs"
+                          title="OTHER badge enabled on public portal"
+                        >
+                          OTHER BADGE
                         </span>
                       </div>
                     </div>
@@ -187,7 +194,7 @@
 
                 <!-- 3. Facility / Scope -->
                 <td class="py-3.5 px-4 whitespace-nowrap">
-                  <template v-if="scheme.schemeType === 'SERVICE'">
+                  <template v-if="isOtherFacility(scheme)">
                     <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 whitespace-nowrap">
                       <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -205,7 +212,7 @@
 
                 <!-- 4. Interest / Terms -->
                 <td class="py-3.5 px-4 whitespace-nowrap">
-                  <template v-if="scheme.schemeType === 'SERVICE'">
+                  <template v-if="isOtherFacility(scheme)">
                     <span class="text-xs text-slate-400 font-medium whitespace-nowrap">Non-Financial Facility</span>
                   </template>
                   <template v-else>
@@ -438,7 +445,7 @@
 
               <button
                 type="button"
-                @click="setSchemeType('SERVICE')"
+                @click="setSchemeType('OTHER')"
                 :class="[
                   'flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all',
                   isOtherFacility(form)
@@ -480,13 +487,13 @@
 
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                {{ form.schemeType === 'SERVICE' ? 'Service / Program Title *' : 'Scheme Title *' }}
+                {{ isOtherFacility(form) ? 'Service / Program Title *' : 'Scheme Title *' }}
               </label>
               <input
                 v-model="form.title"
                 type="text"
                 required
-                :placeholder="form.schemeType === 'SERVICE' ? 'e.g. Government Grain Preservation & Silo Centers' : 'e.g. Re-MSME Plus Loan Scheme'"
+                :placeholder="isOtherFacility(form) ? 'e.g. Government Grain Preservation & Silo Centers' : 'e.g. Re-MSME Plus Loan Scheme'"
                 class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
               />
             </div>
@@ -514,16 +521,16 @@
                   <div
                     :class="[
                       'w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm text-white',
-                      form.schemeType === 'SERVICE' ? 'bg-amber-500' : 'bg-gradient-to-br from-[#008795] to-[#005a66]'
+                      isOtherFacility(form) ? 'bg-amber-500' : 'bg-gradient-to-br from-[#008795] to-[#005a66]'
                     ]"
                   >
-                    <i :class="form.icon || (form.schemeType === 'SERVICE' ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')" class="text-base"></i>
+                    <i :class="form.icon || (isOtherFacility(form) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')" class="text-base"></i>
                   </div>
                   <input
                     v-model="form.icon"
                     type="text"
                     required
-                    :placeholder="form.schemeType === 'SERVICE' ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd'"
+                    :placeholder="isOtherFacility(form) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd'"
                     class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800 font-mono"
                   />
                 </div>
@@ -532,107 +539,324 @@
           </div>
 
           <!-- 3. LOAN-SPECIFIC FINANCIAL FIELDS (SHOWN ONLY IF SCHEME TYPE IS 'LOAN') -->
-          <div v-if="form.schemeType === 'LOAN'" class="bg-cyan-50/40 rounded-2xl p-4 border border-cyan-100 space-y-4">
-            <h3 class="text-xs font-bold text-[#007c91] uppercase tracking-wider flex items-center gap-2">
-              <i class="fas fa-coins text-sm"></i>
-              Loan Financing Terms &amp; Limits
-            </h3>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Max Loan Facility *</label>
-                <input
-                  v-model="form.maxAmount"
-                  type="text"
-                  :required="form.schemeType === 'LOAN'"
-                  placeholder="e.g. Up to Rs. 25M"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
-              </div>
-
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Customer Interest Rate *</label>
-                <input
-                  v-model="form.interestRate"
-                  type="text"
-                  :required="form.schemeType === 'LOAN'"
-                  placeholder="e.g. 5% p.a. or Concessional"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
-              </div>
+          <div v-if="!isOtherFacility(form)" class="bg-cyan-50/40 rounded-2xl p-5 border border-cyan-100 space-y-5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-[#007c91] uppercase tracking-wider flex items-center gap-2">
+                <i class="fas fa-coins text-sm"></i>
+                Loan Financing Terms &amp; Summary Metrics
+              </h3>
+              <span class="text-[11px] text-slate-400 font-medium">Configures the 4 summary metric cards on the public portal</span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nature of Loan</label>
-                <input
-                  v-model="form.natureOfLoan"
-                  type="text"
-                  placeholder="e.g. Working Capital or Investment & Machinery"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
-                <p class="text-[11px] text-slate-400 mt-1">Displays in Metric Box 4 if Grace Period is not applicable</p>
+            <!-- Metric 1: Max Loan Facility (Primary + Subtext) -->
+            <div class="p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs space-y-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <span class="w-5 h-5 rounded-full bg-cyan-100 text-[#008795] flex items-center justify-center text-[10px]">1</span>
+                <span>Max Loan Amount (Summary Card 1)</span>
               </div>
-
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Government Subsidy Details</label>
-                <input
-                  v-model="form.subsidyDetails"
-                  type="text"
-                  placeholder="e.g. 4% Govt. Subsidy (12% Total Rate)"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
-                <p class="text-[11px] text-slate-400 mt-1">Displays as a subtle badge under the interest rate</p>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Repayment Period</label>
-                <input
-                  v-model="form.repaymentPeriod"
-                  type="text"
-                  placeholder="e.g. Up to 60 Months"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
-              </div>
-
-              <div>
-                <div class="flex items-center justify-between mb-1.5">
-                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Grace Period</label>
-                  <span class="text-[11px] text-slate-400 font-medium">Optional</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Primary Display Value *</label>
+                  <input
+                    v-model="form.maxAmount"
+                    type="text"
+                    :required="form.schemeType === 'LOAN'"
+                    placeholder="e.g. Up to Rs. 25M or Up to Rs. 3M"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Bold primary figure shown at top of Card 1</p>
                 </div>
-                <input
-                  v-model="form.gracePeriod"
-                  type="text"
-                  placeholder="e.g. Up to 6 Months (leave blank if none)"
-                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
-                />
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Subtext / Breakdown (Optional)</label>
+                  <input
+                    v-model="form.maxLoanSubtext"
+                    type="text"
+                    placeholder="e.g. Short-Term: Rs. 3M | Nurseries: Rs. 500k | Home: Rs. 100k"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Secondary breakdown rendered below the primary amount</p>
+                </div>
               </div>
             </div>
 
+            <!-- Metric 2: Interest Rate, Subsidy Badge & Rate Footnote -->
+            <div class="p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs space-y-3">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <span class="w-5 h-5 rounded-full bg-cyan-100 text-[#008795] flex items-center justify-center text-[10px]">2</span>
+                <span>Interest Rate, Subsidy &amp; Footnote (Summary Card 2)</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Customer Interest Rate *</label>
+                  <input
+                    v-model="form.interestRate"
+                    type="text"
+                    :required="form.schemeType === 'LOAN'"
+                    placeholder="e.g. 6% (Current) * or 5% p.a."
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Bold primary interest rate displayed to borrowers</p>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Interest Rate Subtext (Optional)</label>
+                  <input
+                    v-model="form.interestSubtext"
+                    type="text"
+                    placeholder="e.g. Effective rate for borrowers"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Subtext or qualifying label beside or below the rate</p>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Govt. Subsidy Badge (Optional)</label>
+                  <input
+                    v-model="form.subsidyBadge"
+                    type="text"
+                    placeholder="e.g. 5% p.a. Government Interest Subsidy or 4% Govt. Subsidy"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Renders as a dedicated highlight badge on Card 2</p>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Rate Disclaimer / Footnote (Optional)</label>
+                  <input
+                    v-model="form.rateFootnote"
+                    type="text"
+                    placeholder="e.g. * Rate could be varied for each semi-annual allocation"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Displays as a clean footnote at the bottom of the Interest Card</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Metric 3 & 4: Repayment Period & Grace Period -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Metric 3: Repayment Period -->
+              <div class="p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs space-y-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <span class="w-5 h-5 rounded-full bg-cyan-100 text-[#008795] flex items-center justify-center text-[10px]">3</span>
+                  <span>Repayment Period (Summary Card 3)</span>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Repayment Term</label>
+                  <input
+                    v-model="form.repaymentPeriod"
+                    type="text"
+                    placeholder="e.g. Up to 60 Months or 120 months / 24 months"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Repayment Subtext (Optional)</label>
+                  <input
+                    v-model="form.repaymentSubtext"
+                    type="text"
+                    placeholder="e.g. (Investment & Joint Loans / Working Capital)"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <!-- Metric 4: Grace Period -->
+              <div class="p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs space-y-3">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                  <span class="w-5 h-5 rounded-full bg-cyan-100 text-[#008795] flex items-center justify-center text-[10px]">4</span>
+                  <span>Grace Period (Summary Card 4)</span>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Grace Period Term</label>
+                  <input
+                    v-model="form.gracePeriod"
+                    type="text"
+                    placeholder="e.g. Up to 6 Months (leave blank if none)"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Grace Period Subtext (Optional)</label>
+                  <input
+                    v-model="form.graceSubtext"
+                    type="text"
+                    placeholder="e.g. Applicable for capital investments"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Nature of Loan -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Participating Banks (PFIs)</label>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nature of Loan</label>
               <input
-                v-model="form.participatingBanks"
+                v-model="form.natureOfLoan"
                 type="text"
-                placeholder="e.g. Bank of Ceylon, People's Bank, Commercial Bank, HNB"
+                placeholder="e.g. Working Capital or Investment & Machinery"
                 class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
               />
-              <p class="text-[11px] text-slate-400 mt-1">Separate multiple banks with commas</p>
+              <p class="text-[11px] text-slate-400 mt-1">Displays in its own dedicated section (Nature of the Loan) on the public portal</p>
+            </div>
+
+            <!-- Participating Financial Institutions (PFIs) -->
+            <div class="space-y-3 p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-university text-[#008795]"></i>
+                    Participating Financial Institutions (PFIs)
+                    <span class="text-slate-400 font-normal">({{ selectedBanks.length }} selected)</span>
+                  </label>
+                  <p class="text-[11px] text-slate-500 mt-0.5">
+                    Click quick-select chips or type custom institutions below. Full bank names render on single lines.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Quick-Select Common Banks Chips -->
+              <div class="space-y-1.5">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quick-Select Common Banks:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <button
+                    v-for="bank in commonBanks"
+                    :key="bank"
+                    type="button"
+                    @click="toggleBank(bank)"
+                    class="px-2.5 py-1 text-xs rounded-lg border transition font-medium flex items-center gap-1.5"
+                    :class="selectedBanks.includes(bank)
+                      ? 'bg-[#008795] text-white border-[#008795] shadow-xs'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'"
+                  >
+                    <i v-if="selectedBanks.includes(bank)" class="fas fa-check text-[10px]"></i>
+                    <i v-else class="fas fa-plus text-[10px] text-slate-400"></i>
+                    <span>{{ bank }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Custom Bank Addition Input -->
+              <div class="flex items-center gap-2 pt-1">
+                <input
+                  v-model="customBankInput"
+                  @keydown.enter.prevent="addCustomBank"
+                  type="text"
+                  placeholder="Type other bank / institution name..."
+                  class="flex-1 px-3 py-1.5 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                />
+                <button
+                  type="button"
+                  @click="addCustomBank"
+                  class="px-3 py-1.5 text-xs font-bold bg-cyan-50 text-[#008795] hover:bg-cyan-100 border border-cyan-200 rounded-xl transition"
+                >
+                  + Add Bank
+                </button>
+              </div>
+
+              <!-- Selected Banks Display Pills -->
+              <div v-if="selectedBanks.length > 0" class="pt-2 border-t border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Selected Banks for Scheme:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    v-for="(bank, bIdx) in selectedBanks"
+                    :key="bIdx"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-50 text-[#006071] border border-cyan-200"
+                  >
+                    <span>{{ bank }}</span>
+                    <button
+                      type="button"
+                      @click="removeBank(bIdx)"
+                      class="text-cyan-600 hover:text-rose-600 transition"
+                      title="Remove"
+                    >
+                      <i class="fas fa-times text-[10px]"></i>
+                    </button>
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- 4. SERVICE-SPECIFIC PROGRAM FIELDS (SHOWN ONLY IF SCHEME TYPE IS 'SERVICE') -->
-          <div v-if="form.schemeType === 'SERVICE'" class="bg-amber-50/50 rounded-2xl p-4 border border-amber-200/80 space-y-4">
-            <h3 class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
-              <i class="fas fa-warehouse text-sm"></i>
-              Institutional Facility &amp; Operational Scope
-            </h3>
+          <!-- 4. SERVICE-SPECIFIC PROGRAM FIELDS (SHOWN ONLY IF SCHEME TYPE IS 'OTHER' / 'SERVICE') -->
+          <div v-if="isOtherFacility(form)" class="bg-amber-50/50 rounded-2xl p-5 border border-amber-200/80 space-y-5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
+                <i class="fas fa-warehouse text-sm"></i>
+                Institutional Facility &amp; Operational Scope
+              </h3>
+              <span class="text-[11px] text-amber-700/80 font-medium">Configures top highlight cards and operational infrastructure</span>
+            </div>
+
+            <!-- 4 Custom Highlight Cards Builder -->
+            <div class="space-y-3 p-4 rounded-xl bg-white border border-amber-200/80 shadow-xs">
+              <div>
+                <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                  <i class="fas fa-th-large text-amber-700"></i>
+                  Top 4 Summary Highlight Cards
+                </label>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Customize the 4 primary metric cards displayed across the top of the service details page.
+                </p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div
+                  v-for="(card, cIdx) in customMetricsRows"
+                  :key="cIdx"
+                  class="p-3 rounded-xl bg-amber-50/30 border border-amber-200/70 space-y-2.5"
+                >
+                  <div class="flex items-center justify-between text-xs font-bold text-amber-950">
+                    <span class="flex items-center gap-1.5">
+                      <span class="w-5 h-5 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center text-[10px]">{{ cIdx + 1 }}</span>
+                      <span>Card {{ cIdx + 1 }}: {{ card.label || `Highlight ${cIdx + 1}` }}</span>
+                    </span>
+                    <i :class="card.icon || 'fas fa-info-circle'" class="text-amber-700"></i>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase">Card Label</label>
+                      <input
+                        v-model="card.label"
+                        type="text"
+                        placeholder="e.g. Coverage / Locations"
+                        class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-amber-500 outline-none text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase">Primary Value</label>
+                      <input
+                        v-model="card.value"
+                        type="text"
+                        placeholder="e.g. 5 Key Districts (6 Warehouses)"
+                        class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-amber-500 outline-none text-slate-800"
+                      />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase">Subtext (Optional)</label>
+                      <input
+                        v-model="card.subtext"
+                        type="text"
+                        placeholder="e.g. Managed by RDB"
+                        class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-amber-500 outline-none text-slate-800"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase">FontAwesome Icon</label>
+                      <input
+                        v-model="card.icon"
+                        type="text"
+                        placeholder="e.g. fas fa-warehouse"
+                        class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:ring-1 focus:ring-amber-500 outline-none text-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Center / Operational Locations (Districts or Centers)
+                Center / Operational Locations (Districts or Summary)
               </label>
               <input
                 v-model="form.locations"
@@ -640,20 +864,221 @@
                 placeholder="e.g. Polonnaruwa, Anuradhapura, Monaragala, Kilinochchi, Mannar"
                 class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
               />
-              <p class="text-[11px] text-slate-400 mt-1">Separate districts or center names with commas</p>
+              <p class="text-[11px] text-slate-400 mt-1">Summary of covered districts or regions</p>
             </div>
 
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Services &amp; Facilities Provided
-              </label>
-              <input
-                v-model="form.servicesProvided"
-                type="text"
-                placeholder="e.g. Commercial Grain Drying, Mechanical Cleaning, Moisture Testing, Scientific Storage"
-                class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
-              />
-              <p class="text-[11px] text-slate-400 mt-1">Separate services with commas (rendered as rich feature tags on public portal)</p>
+            <!-- Warehouse / Center Locations Table Builder -->
+            <div class="space-y-3 pt-3 border-t border-amber-200/70">
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-table-list text-amber-700"></i>
+                    Warehouse / Center Locations Table
+                    <span class="text-amber-700/80 font-normal">({{ centerLocationRows.length }} {{ centerLocationRows.length === 1 ? 'entry' : 'entries' }})</span>
+                  </label>
+                  <p class="text-[11px] text-slate-500 mt-0.5">
+                    Build structured warehouse location rows with address, capacity in metric tons (MT), and direct contact numbers.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  @click="addCenterLocationRow"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200/80 rounded-xl border border-amber-300/80 transition shadow-xs"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                  </svg>
+                  + Add Center Location
+                </button>
+              </div>
+
+              <!-- Repeater Rows -->
+              <div class="space-y-3">
+                <div
+                  v-for="(row, idx) in centerLocationRows"
+                  :key="idx"
+                  class="p-3.5 rounded-2xl bg-white border border-amber-200/80 shadow-xs space-y-3 relative group"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center shrink-0">
+                        {{ idx + 1 }}
+                      </span>
+                      <span class="text-xs font-bold text-slate-700">
+                        {{ row.warehouseName || row.district ? `${row.warehouseName || 'Warehouse'} (${row.district || 'Unassigned'})` : `Center Location #${idx + 1}` }}
+                      </span>
+                    </div>
+
+                    <button
+                      v-if="centerLocationRows.length > 1"
+                      type="button"
+                      @click="removeCenterLocationRow(idx)"
+                      class="text-xs font-semibold text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition flex items-center gap-1"
+                      title="Remove this location"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      <span class="text-[11px] hidden sm:inline">Remove</span>
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+                    <!-- District -->
+                    <div class="sm:col-span-1 lg:col-span-3">
+                      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        District *
+                      </label>
+                      <input
+                        v-model="row.district"
+                        type="text"
+                        placeholder="e.g. Polonnaruwa"
+                        class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                      />
+                    </div>
+
+                    <!-- Warehouse Name -->
+                    <div class="sm:col-span-1 lg:col-span-4">
+                      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        Warehouse Name *
+                      </label>
+                      <input
+                        v-model="row.warehouseName"
+                        type="text"
+                        placeholder="e.g. Gal-Oya Central Silo Complex"
+                        class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                      />
+                    </div>
+
+                    <!-- Storage Capacity (MT) -->
+                    <div class="sm:col-span-1 lg:col-span-2">
+                      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        Storage Capacity (MT)
+                      </label>
+                      <input
+                        v-model="row.storageCapacity"
+                        type="text"
+                        placeholder="e.g. 5,000"
+                        class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                      />
+                    </div>
+
+                    <!-- Contact Number -->
+                    <div class="sm:col-span-1 lg:col-span-3">
+                      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        Contact Number
+                      </label>
+                      <input
+                        v-model="row.contactNumber"
+                        type="text"
+                        placeholder="e.g. 027-2245890"
+                        class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                      />
+                    </div>
+
+                    <!-- Address (Full Width within card) -->
+                    <div class="col-span-full">
+                      <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+                        Address
+                      </label>
+                      <input
+                        v-model="row.address"
+                        type="text"
+                        placeholder="e.g. Minneriya Road, Gal-Oya Junction, Polonnaruwa"
+                        class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pt-1">
+                  <button
+                    type="button"
+                    @click="addCenterLocationRow"
+                    class="w-full py-2.5 border-2 border-dashed border-amber-300/80 hover:border-amber-400 rounded-2xl text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-50/40 hover:bg-amber-100/60 transition flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                    + Add Center Location Row
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Services & Facilities Provided with List Builder Mode -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Services &amp; Facilities Provided
+                  <span class="text-slate-400 font-normal ml-1">
+                    ({{ isServicesListMode ? `${servicesProvidedPoints.filter(p => p.trim()).length} facilities` : 'Multi-line / text' }})
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  @click="toggleServicesFieldMode"
+                  class="text-[11px] font-semibold text-amber-800 hover:text-amber-900 transition flex items-center gap-1"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  {{ isServicesListMode ? 'Switch to Comma / Text' : 'Switch to Points Builder' }}
+                </button>
+              </div>
+
+              <!-- List Builder Mode -->
+              <div v-if="isServicesListMode" class="space-y-2">
+                <div
+                  v-for="(point, idx) in servicesProvidedPoints"
+                  :key="idx"
+                  class="flex items-center gap-2"
+                >
+                  <span class="w-6 h-6 rounded-full bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold flex items-center justify-center shrink-0">
+                    {{ idx + 1 }}
+                  </span>
+                  <input
+                    v-model="servicesProvidedPoints[idx]"
+                    @paste="handlePointPaste($event, servicesProvidedPoints, idx)"
+                    type="text"
+                    placeholder="e.g. Commercial Grain Drying (Capacity: 10MT/batch)"
+                    class="flex-1 px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                  />
+                  <button
+                    v-if="servicesProvidedPoints.length > 1"
+                    @click="removePoint(servicesProvidedPoints, idx)"
+                    type="button"
+                    class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+                    title="Remove item"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+                <div class="flex items-center justify-between pt-1">
+                  <button
+                    type="button"
+                    @click="addPoint(servicesProvidedPoints)"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-800 hover:text-amber-900 bg-amber-100 hover:bg-amber-200/80 rounded-xl border border-amber-300 transition"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                    </svg>
+                    + Add Facility Item
+                  </button>
+                </div>
+              </div>
+
+              <!-- Raw Text Mode -->
+              <div v-else>
+                <input
+                  v-model="form.servicesProvided"
+                  type="text"
+                  placeholder="e.g. Commercial Grain Drying, Mechanical Cleaning, Moisture Testing, Scientific Storage"
+                  class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+                />
+              </div>
             </div>
 
             <div>
@@ -666,6 +1091,22 @@
                 placeholder="e.g. Managed by Regional Development Bank (RDB) under supervision of District Secretaries"
                 class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
               />
+            </div>
+
+            <!-- Operational Costs & Revenue Note -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Operational Costs &amp; Revenue Arrangements Note
+              </label>
+              <textarea
+                v-model="form.operationalCostNote"
+                rows="3"
+                placeholder="e.g. Operating costs for drying, mechanical cleaning, and storage are recovered through nominal, subsidized service fees approved by the Ministry of Finance..."
+                class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
+              ></textarea>
+              <p class="text-[11px] text-slate-400 mt-1">
+                Details regarding service tariffs, cost recovery, and subsidized fee arrangements for farmers (renders as an info callout card on the public portal).
+              </p>
             </div>
           </div>
 
@@ -950,7 +1391,308 @@
             </div>
           </div>
 
-          <!-- 6. PUBLISH / 3-STATE STATUS SELECTOR -->
+          <!-- 5B. DYNAMIC CUSTOM SECTIONS BUILDER (AVAILABLE FOR BOTH LOAN & OTHER) -->
+          <div class="bg-indigo-50/40 rounded-2xl p-5 border border-indigo-100 space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-2">
+                  <i class="fas fa-layer-group text-indigo-600"></i>
+                  Custom Sections Builder (Optional)
+                  <span class="text-indigo-600 font-normal">({{ customSectionRows.length }} {{ customSectionRows.length === 1 ? 'section' : 'sections' }})</span>
+                </h3>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Add dynamic scheme-specific sections (e.g. "Special Terms", "Collateral Details", "Subsidy Formula") rendered on the public portal.
+                </p>
+              </div>
+              <button
+                type="button"
+                @click="addCustomSection"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-800 bg-indigo-100 hover:bg-indigo-200/80 rounded-xl border border-indigo-200 transition shadow-xs"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                + Add Custom Section
+              </button>
+            </div>
+
+            <!-- Repeater for Custom Sections -->
+            <div v-if="customSectionRows.length > 0" class="space-y-4">
+              <div
+                v-for="(sec, sIdx) in customSectionRows"
+                :key="sIdx"
+                class="p-4 rounded-xl bg-white border border-indigo-100 shadow-xs space-y-3"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 text-xs font-bold flex items-center justify-center shrink-0">
+                      {{ sIdx + 1 }}
+                    </span>
+                    <span class="text-xs font-bold text-slate-800">
+                      {{ sec.title || `Custom Section #${sIdx + 1}` }}
+                    </span>
+                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-slate-100 text-slate-600 uppercase">
+                      {{ sec.type }}
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-1">
+                    <button
+                      type="button"
+                      @click="moveCustomSectionUp(sIdx)"
+                      :disabled="sIdx === 0"
+                      class="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 rounded hover:bg-slate-100 transition"
+                      title="Move Up"
+                    >
+                      <i class="fas fa-chevron-up text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      @click="moveCustomSectionDown(sIdx)"
+                      :disabled="sIdx === customSectionRows.length - 1"
+                      class="p-1.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 rounded hover:bg-slate-100 transition"
+                      title="Move Down"
+                    >
+                      <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      @click="removeCustomSection(sIdx)"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition ml-1"
+                      title="Delete Section"
+                    >
+                      <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Section Title *</label>
+                    <input
+                      v-model="sec.title"
+                      type="text"
+                      placeholder="e.g. Special Concessionary Terms & Conditions"
+                      class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition text-slate-800"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Display Format</label>
+                    <select
+                      v-model="sec.type"
+                      class="w-full px-3 py-2 text-xs bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition text-slate-800"
+                    >
+                      <option value="bullets">Bullet Points Checklist</option>
+                      <option value="callout">Highlighted Callout Card</option>
+                      <option value="text">Standard Text Paragraph</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Bullets Mode -->
+                <div v-if="sec.type === 'bullets'" class="space-y-2 pt-2 border-t border-slate-100">
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">Bullet Items</label>
+                  <div
+                    v-for="(item, itmIdx) in sec.items"
+                    :key="itmIdx"
+                    class="flex items-center gap-2"
+                  >
+                    <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      {{ itmIdx + 1 }}
+                    </span>
+                    <input
+                      v-model="sec.items[itmIdx]"
+                      type="text"
+                      placeholder="e.g. Refinance facility provided directly through Central Bank of Sri Lanka"
+                      class="flex-1 px-3 py-1.5 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800"
+                    />
+                    <button
+                      v-if="sec.items.length > 1"
+                      @click="removeCustomSectionItem(sec, itmIdx)"
+                      type="button"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-rose-50 transition"
+                      title="Remove item"
+                    >
+                      <i class="fas fa-trash-alt text-[11px]"></i>
+                    </button>
+                  </div>
+                  <div class="pt-1">
+                    <button
+                      type="button"
+                      @click="addCustomSectionItem(sec)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition"
+                    >
+                      <i class="fas fa-plus text-[10px]"></i> Add Bullet Item
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Callout or Text Mode -->
+                <div v-else class="space-y-1.5 pt-2 border-t border-slate-100">
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    {{ sec.type === 'callout' ? 'Callout Content Text' : 'Section Paragraph Content' }}
+                  </label>
+                  <textarea
+                    v-model="sec.content"
+                    rows="3"
+                    placeholder="Enter section text content..."
+                    class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty state for custom sections -->
+            <div v-else class="text-center py-4 bg-white/60 rounded-xl border border-dashed border-indigo-200 text-xs text-slate-500">
+              No custom sections added yet. Click "+ Add Custom Section" above to add scheme-specific subsections.
+            </div>
+          </div>
+
+          <!-- 6. OPERATIONAL GUIDELINES (PDF) UPLOAD -->
+          <div class="space-y-3 p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div class="flex items-center justify-between">
+              <div>
+                <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                  <i class="fas fa-file-pdf text-red-500 text-sm"></i>
+                  Operational Guidelines (PDF)
+                </label>
+                <p class="text-[11px] text-slate-500 mt-0.5">
+                  Attach official guidelines, circular, or scheme manual (PDF format only, max 25MB)
+                </p>
+              </div>
+              <span v-if="form.operationalGuidelineUrl || selectedGuidelineFile" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
+                PDF Attached
+              </span>
+            </div>
+
+            <!-- Existing Guideline PDF Display (when not replacing with newly selected file) -->
+            <div
+              v-if="form.operationalGuidelineUrl && !selectedGuidelineFile"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-white border border-teal-200/80 shadow-xs"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 text-red-600 flex items-center justify-center shrink-0">
+                  <i class="fas fa-file-pdf text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-slate-900 truncate" :title="form.operationalGuidelineFileName || getFileNameFromUrl(form.operationalGuidelineUrl)">
+                    {{ form.operationalGuidelineFileName || getFileNameFromUrl(form.operationalGuidelineUrl) || 'Operational_Guidelines.pdf' }}
+                  </div>
+                  <div class="text-[11px] text-teal-700 font-medium flex items-center gap-2 mt-0.5">
+                    <span>Uploaded Guideline</span>
+                    <span>&bull;</span>
+                    <a
+                      :href="getGuidelineDownloadUrl(form.operationalGuidelineUrl)"
+                      target="_blank"
+                      download
+                      class="text-[#008795] hover:text-[#006071] underline font-semibold flex items-center gap-1"
+                    >
+                      <span>Preview / Download</span>
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <button
+                  type="button"
+                  @click="triggerGuidelineFileInput"
+                  class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition flex items-center gap-1.5"
+                >
+                  <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Replace PDF
+                </button>
+                <button
+                  type="button"
+                  @click="removeGuidelineFile"
+                  class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition flex items-center gap-1.5"
+                  title="Remove this PDF guideline"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <!-- Newly Selected File Preview (Ready to upload on save) -->
+            <div
+              v-else-if="selectedGuidelineFile"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-teal-50/60 border border-teal-300 shadow-xs"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                  <i class="fas fa-file-pdf text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs font-bold text-slate-900 truncate" :title="selectedGuidelineFile.name">
+                    {{ selectedGuidelineFile.name }}
+                  </div>
+                  <div class="text-[11px] text-teal-800 font-medium flex items-center gap-2 mt-0.5">
+                    <span>{{ formatBytes(selectedGuidelineFile.size) }}</span>
+                    <span>&bull;</span>
+                    <span class="text-amber-700 font-semibold">Ready to upload on save</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <button
+                  type="button"
+                  @click="triggerGuidelineFileInput"
+                  class="px-3 py-1.5 rounded-lg border border-teal-200 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition"
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  @click="cancelSelectedGuidelineFile"
+                  class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty Dropzone / File Picker (when no PDF attached and none selected) -->
+            <div
+              v-else
+              @click="triggerGuidelineFileInput"
+              class="border-2 border-dashed border-slate-200 hover:border-[#008795] rounded-xl p-5 text-center cursor-pointer bg-white hover:bg-cyan-50/20 transition-all group"
+            >
+              <div class="w-10 h-10 mx-auto rounded-full bg-slate-100 group-hover:bg-cyan-100 text-slate-500 group-hover:text-[#008795] flex items-center justify-center transition-colors mb-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+              </div>
+              <p class="text-xs font-bold text-slate-700 group-hover:text-[#008795] transition-colors mb-0.5">
+                Click to select Operational Guidelines PDF
+              </p>
+              <p class="text-[11px] text-slate-400 mb-0">
+                Adobe Acrobat Document (.pdf) up to 25 MB
+              </p>
+            </div>
+
+            <!-- Hidden Actual File Input -->
+            <input
+              type="file"
+              ref="guidelineFileInput"
+              accept=".pdf,application/pdf"
+              @change="onGuidelineFileSelected"
+              class="hidden"
+            />
+          </div>
+
+          <!-- 7. PUBLISH / 3-STATE STATUS SELECTOR -->
           <div class="space-y-2 pt-1">
             <div class="flex items-center justify-between">
               <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -1041,6 +1783,49 @@
                 </div>
               </label>
             </div>
+          </div>
+
+          <!-- 8. PUBLIC CARD BADGES (OTHER BADGE TOGGLE) -->
+          <div class="space-y-2 pt-1">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Public Card Badges
+              </label>
+              <span class="text-[11px] text-slate-400 font-medium">Controls highlight badges displayed on the public card</span>
+            </div>
+
+            <label
+              :class="[
+                'relative flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all select-none',
+                form.showOtherBadge
+                  ? 'bg-amber-50/70 border-amber-500 ring-2 ring-amber-500/20 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+              ]"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shadow-2xs">
+                  OTHER
+                </span>
+                <div>
+                  <div class="text-xs font-bold" :class="form.showOtherBadge ? 'text-amber-800' : 'text-slate-800'">
+                    Show "OTHER" Badge on Card
+                  </div>
+                  <div class="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                    Displays the prominent amber "OTHER" badge on top of this scheme card on public pages
+                  </div>
+                </div>
+              </div>
+
+              <!-- Toggle Switch -->
+              <div class="relative inline-flex items-center shrink-0 ml-4">
+                <input
+                  type="checkbox"
+                  v-model="form.showOtherBadge"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </div>
+            </label>
           </div>
 
           <!-- ACTIONS -->
@@ -1173,33 +1958,323 @@ const showDeleteModal = ref(false);
 const schemeToDelete = ref(null);
 const isDeleting = ref(false);
 
+// Helper to clean accidental citation artifacts (e.g. [cite: ...], 【...】)
+const cleanCitations = (str) => {
+  if (!str || typeof str !== 'string') return str;
+  return str
+    .replace(/\[cite:\s*[^\]]+\]/gi, '')
+    .replace(/【[^】]+】/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+};
+
+// Common PFIs quick-select list
+const commonBanks = [
+  "Bank of Ceylon",
+  "People's Bank",
+  "Commercial Bank of Ceylon PLC",
+  "Hatton National Bank PLC",
+  "Sampath Bank PLC",
+  "Seylan Bank PLC",
+  "DFCC Bank PLC",
+  "National Development Bank PLC",
+  "Nations Trust Bank PLC",
+  "Regional Development Bank",
+  "Sanasa Development Bank PLC",
+  "Pan Asia Banking Corporation PLC",
+  "Union Bank of Colombo PLC",
+  "State Mortgage and Investment Bank",
+  "Cargills Bank PLC",
+  "Amana Bank PLC"
+];
+
+const selectedBanks = ref([]);
+const customBankInput = ref('');
+
+const toggleBank = (bank) => {
+  const idx = selectedBanks.value.indexOf(bank);
+  if (idx >= 0) {
+    selectedBanks.value.splice(idx, 1);
+  } else {
+    selectedBanks.value.push(bank);
+  }
+};
+
+const addCustomBank = () => {
+  const trimmed = cleanCitations(customBankInput.value);
+  if (trimmed && !selectedBanks.value.includes(trimmed)) {
+    selectedBanks.value.push(trimmed);
+  }
+  customBankInput.value = '';
+};
+
+const removeBank = (index) => {
+  selectedBanks.value.splice(index, 1);
+};
+
+// 4 Custom Highlight Cards for Institutional Services (OTHER)
+const defaultCustomMetrics = () => [
+  { label: 'Coverage / Locations', value: '', subtext: '', icon: 'fas fa-map-marked-alt' },
+  { label: 'Managing Partner', value: '', subtext: '', icon: 'fas fa-landmark' },
+  { label: 'Supervision', value: '', subtext: '', icon: 'fas fa-user-shield' },
+  { label: 'Core Facilities', value: '', subtext: '', icon: 'fas fa-warehouse' }
+];
+
+const customMetricsRows = ref(defaultCustomMetrics());
+
+const parseCustomMetrics = (raw) => {
+  const defaults = defaultCustomMetrics();
+  if (!raw) return defaults;
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+  }
+  if (!list.length) return defaults;
+  return list.map((item, idx) => ({
+    label: item.label || defaults[idx]?.label || `Highlight ${idx + 1}`,
+    value: item.value || '',
+    subtext: item.subtext || '',
+    icon: item.icon || defaults[idx]?.icon || 'fas fa-info-circle'
+  }));
+};
+
+// Dynamic Custom Sections Builder State
+const customSectionRows = ref([]);
+
+const parseCustomSections = (raw) => {
+  if (!raw) return [];
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+  }
+  return list.map(s => ({
+    title: s.title || '',
+    type: s.type || 'bullets',
+    items: Array.isArray(s.items) && s.items.length ? s.items : [''],
+    content: s.content || ''
+  }));
+};
+
+const addCustomSection = () => {
+  customSectionRows.value.push({
+    title: '',
+    type: 'bullets',
+    items: [''],
+    content: ''
+  });
+};
+
+const removeCustomSection = (idx) => {
+  customSectionRows.value.splice(idx, 1);
+};
+
+const moveCustomSectionUp = (idx) => {
+  if (idx <= 0) return;
+  const temp = customSectionRows.value[idx];
+  customSectionRows.value[idx] = customSectionRows.value[idx - 1];
+  customSectionRows.value[idx - 1] = temp;
+};
+
+const moveCustomSectionDown = (idx) => {
+  if (idx >= customSectionRows.value.length - 1) return;
+  const temp = customSectionRows.value[idx];
+  customSectionRows.value[idx] = customSectionRows.value[idx + 1];
+  customSectionRows.value[idx + 1] = temp;
+};
+
+const addCustomSectionItem = (section) => {
+  if (!section.items) section.items = [];
+  section.items.push('');
+};
+
+const removeCustomSectionItem = (section, itemIdx) => {
+  if (section.items.length > 1) {
+    section.items.splice(itemIdx, 1);
+  } else {
+    section.items[0] = '';
+  }
+};
+
+// Services Provided Points Builder
+const servicesProvidedPoints = ref(['']);
+const isServicesListMode = ref(true);
+
+const toggleServicesFieldMode = () => {
+  isServicesListMode.value = !isServicesListMode.value;
+  if (isServicesListMode.value) {
+    servicesProvidedPoints.value = parseRawToList(form.value.servicesProvided);
+  } else {
+    form.value.servicesProvided = listToRaw(servicesProvidedPoints.value);
+  }
+};
+
 const defaultForm = () => ({
   schemeType: 'LOAN',
   title: '',
   category: 'MSME Revitalization',
   maxAmount: '',
+  maxLoanSubtext: '',
   interestRate: '',
+  interestSubtext: '',
   subsidyDetails: '',
+  subsidyBadge: '',
+  rateFootnote: '',
   natureOfLoan: '',
   repaymentPeriod: '',
+  repaymentSubtext: '',
   gracePeriod: '',
+  graceSubtext: '',
   beneficiaries: '',
   requirements: '',
   locations: '',
   servicesProvided: '',
   implementationArrangements: '',
+  operationalArrangements: '',
+  operationalCostNote: '',
+  centerLocationsTable: [],
+  locationsTable: [],
+  customMetrics: [],
+  customSections: [],
   otherInitiatives: '',
   contactInfo: '',
+  operationalGuidelineUrl: '',
+  operationalGuidelineFileName: '',
   purpose: '',
   eligibility: '',
   participatingBanks: '',
   description: '',
   icon: 'fas fa-hand-holding-usd',
+  showOtherBadge: false,
   status: 'ACTIVE',
   active: true
 });
 
 const form = ref(defaultForm());
+
+// Structured Center Locations Repeater State
+const centerLocationRows = ref([
+  { district: '', warehouseName: '', address: '', storageCapacity: '', contactNumber: '' }
+]);
+
+const parseCenterLocations = (raw) => {
+  if (!raw) return [{ district: '', warehouseName: '', address: '', storageCapacity: '', contactNumber: '' }];
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+  }
+  if (!list.length) {
+    return [{ district: '', warehouseName: '', address: '', storageCapacity: '', contactNumber: '' }];
+  }
+  return list.map(item => ({
+    district: item.district || item.District || '',
+    warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item.name || '',
+    address: item.address || item.Address || '',
+    storageCapacity: item.capacity || item.capacityMt || item.storageCapacity || item.storage_capacity || item['Storage Capacity (MT)'] || '',
+    contactNumber: item.contactNumber || item.contact_number || item['Contact Number'] || item.phone || item.contact || ''
+  }));
+};
+
+const addCenterLocationRow = () => {
+  centerLocationRows.value.push({
+    district: '',
+    warehouseName: '',
+    address: '',
+    storageCapacity: '',
+    contactNumber: ''
+  });
+};
+
+const removeCenterLocationRow = (index) => {
+  if (centerLocationRows.value.length > 1) {
+    centerLocationRows.value.splice(index, 1);
+  } else {
+    centerLocationRows.value[0] = {
+      district: '',
+      warehouseName: '',
+      address: '',
+      storageCapacity: '',
+      contactNumber: ''
+    };
+  }
+};
+
+// Guideline PDF File State & Helpers
+const selectedGuidelineFile = ref(null);
+const guidelineFileInput = ref(null);
+
+const triggerGuidelineFileInput = () => {
+  if (guidelineFileInput.value) {
+    guidelineFileInput.value.click();
+  }
+};
+
+const onGuidelineFileSelected = (e) => {
+  const file = e.target?.files?.[0];
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') {
+    alert('Please select a valid PDF file for the Operational Guidelines.');
+    if (e.target) e.target.value = '';
+    return;
+  }
+  selectedGuidelineFile.value = file;
+};
+
+const cancelSelectedGuidelineFile = () => {
+  selectedGuidelineFile.value = null;
+  if (guidelineFileInput.value) guidelineFileInput.value.value = '';
+};
+
+const removeGuidelineFile = () => {
+  form.value.operationalGuidelineUrl = '';
+  form.value.operationalGuidelineFileName = '';
+  selectedGuidelineFile.value = null;
+  if (guidelineFileInput.value) guidelineFileInput.value.value = '';
+};
+
+const getFileNameFromUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  const parts = url.split('/');
+  const raw = parts[parts.length - 1] || '';
+  return raw.replace(/^\d+_/, '');
+};
+
+const getGuidelineDownloadUrl = (url) => {
+  if (!url) return '#';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8096';
+  return `${apiBase.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+};
+
+const formatBytes = (bytes) => {
+  if (!bytes || isNaN(bytes)) return '0 B';
+  if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return bytes + ' B';
+};
 
 // Helper to determine normalized 3-state status with backward compatibility
 const getSchemeStatus = (scheme) => {
@@ -1214,20 +2289,21 @@ const getSchemeStatus = (scheme) => {
 // Helper to determine if an entry is a non-loan institutional facility (OTHER)
 const isOtherFacility = (scheme) => {
   if (!scheme) return false;
-  const t = (scheme.schemeType || '').toUpperCase();
+  const t = (scheme.schemeType || scheme.type || '').toUpperCase();
   return t === 'SERVICE' || t === 'OTHER';
 };
 
 const setSchemeType = (type) => {
-  form.value.schemeType = type;
   if (type === 'SERVICE' || type === 'OTHER') {
+    form.value.schemeType = 'OTHER';
     if (form.value.icon === 'fas fa-hand-holding-usd') {
       form.value.icon = 'fas fa-warehouse';
     }
     if (form.value.category === 'MSME Revitalization') {
-      form.value.category = 'Agriculture & Livestock';
+      form.value.category = 'Preservation & Storage';
     }
   } else {
+    form.value.schemeType = 'LOAN';
     if (form.value.icon === 'fas fa-warehouse') {
       form.value.icon = 'fas fa-hand-holding-usd';
     }
@@ -1252,6 +2328,18 @@ const customCategories = computed(() => {
 });
 
 const getLocationsDisplay = (scheme) => {
+  const locTable = scheme.center_locations_table || scheme.centerLocationsTable;
+  if (locTable) {
+    if (Array.isArray(locTable) && locTable.length > 0) {
+      return `${locTable.length} Warehouses`;
+    }
+    if (typeof locTable === 'string') {
+      try {
+        const parsed = JSON.parse(locTable);
+        if (Array.isArray(parsed) && parsed.length > 0) return `${parsed.length} Warehouses`;
+      } catch (e) {}
+    }
+  }
   if (scheme.locations) {
     if (Array.isArray(scheme.locations) && scheme.locations.length > 0) {
       return `${scheme.locations.length} Districts`;
@@ -1379,8 +2467,13 @@ const isBeneficiariesListMode = ref(true);
 const isPurposeListMode = ref(true);
 const isRequirementsListMode = ref(true);
 
-const parseRawToList = (raw, allowComma = false) => {
-  if (!raw || typeof raw !== 'string' || !raw.trim()) return [''];
+const parseRawToList = (raw) => {
+  if (!raw) return [''];
+  if (Array.isArray(raw)) {
+    const cleaned = raw.map(s => String(s).trim()).filter(Boolean);
+    return cleaned.length > 0 ? cleaned : [''];
+  }
+  if (typeof raw !== 'string' || !raw.trim()) return [''];
   const trimmed = raw.trim();
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     try {
@@ -1390,6 +2483,7 @@ const parseRawToList = (raw, allowComma = false) => {
       }
     } catch {}
   }
+  // Split ONLY by newlines (\r?\n) - NEVER split by commas (,)
   if (trimmed.includes('\n') || trimmed.includes('\r')) {
     const lines = trimmed
       .split(/\r?\n+/)
@@ -1408,14 +2502,8 @@ const parseRawToList = (raw, allowComma = false) => {
     const parts = trimmed.split(';').map(p => p.trim()).filter(Boolean);
     if (parts.length > 1) return parts;
   }
-  if (allowComma && trimmed.includes(',')) {
-    const strippedDot = trimmed.replace(/\.\s*$/, '');
-    if (!strippedDot.includes('.') && strippedDot.length < 240) {
-      const parts = strippedDot.split(',').map(p => p.trim().replace(/^and\s+/i, '')).filter(Boolean);
-      if (parts.length > 1) return parts;
-    }
-  }
-  return [trimmed.replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '')];
+  // Single sentence with commas stays intact as ONE single bullet item
+  return [trimmed.replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, '')];
 };
 
 const listToRaw = (list) => {
@@ -1475,52 +2563,93 @@ const toggleFieldMode = (field) => {
 const openAddModal = () => {
   isEdit.value = false;
   editingId.value = null;
+  selectedGuidelineFile.value = null;
+  if (guidelineFileInput.value) guidelineFileInput.value.value = '';
   form.value = defaultForm();
+  centerLocationRows.value = [{ district: '', warehouseName: '', address: '', storageCapacity: '', contactNumber: '' }];
   beneficiariesPoints.value = [''];
   purposePoints.value = [''];
   requirementsPoints.value = [''];
+  servicesProvidedPoints.value = [''];
+  selectedBanks.value = [];
+  customBankInput.value = '';
+  customMetricsRows.value = defaultCustomMetrics();
+  customSectionRows.value = [];
   isBeneficiariesListMode.value = true;
   isPurposeListMode.value = true;
   isRequirementsListMode.value = true;
+  isServicesListMode.value = true;
   showModal.value = true;
 };
 
 const openEditModal = (scheme) => {
   isEdit.value = true;
   editingId.value = scheme.id;
+  selectedGuidelineFile.value = null;
+  if (guidelineFileInput.value) guidelineFileInput.value.value = '';
   const rawBeneficiaries = scheme.beneficiaries || '';
   const rawPurpose = scheme.purpose || '';
   const rawRequirements = scheme.eligibility || scheme.requirements || '';
 
-  beneficiariesPoints.value = parseRawToList(rawBeneficiaries, true);
-  purposePoints.value = parseRawToList(rawPurpose, false);
-  requirementsPoints.value = parseRawToList(rawRequirements, false);
+  const rawCenterLocations = scheme.locationsTable || scheme.locations_table || scheme.center_locations_table || scheme.centerLocationsTable;
+  centerLocationRows.value = parseCenterLocations(rawCenterLocations);
+
+  beneficiariesPoints.value = parseRawToList(rawBeneficiaries);
+  purposePoints.value = parseRawToList(rawPurpose);
+  requirementsPoints.value = parseRawToList(rawRequirements);
+  servicesProvidedPoints.value = parseRawToList(scheme.servicesProvided);
+
+  selectedBanks.value = (scheme.participatingBanks || '')
+    .split(/[,;\n]/)
+    .map(b => b.trim())
+    .filter(Boolean);
+  customBankInput.value = '';
+
+  customMetricsRows.value = parseCustomMetrics(scheme.customMetrics || scheme.custom_metrics);
+  customSectionRows.value = parseCustomSections(scheme.customSections || scheme.custom_sections);
+
   isBeneficiariesListMode.value = true;
   isPurposeListMode.value = true;
   isRequirementsListMode.value = true;
+  isServicesListMode.value = true;
 
   form.value = {
     schemeType: scheme.schemeType || 'LOAN',
     title: scheme.title || '',
     category: scheme.category || 'MSME Revitalization',
     maxAmount: scheme.maxAmount || '',
+    maxLoanSubtext: scheme.maxLoanSubtext || scheme.max_loan_subtext || '',
     interestRate: scheme.interestRate || '',
+    interestSubtext: scheme.interestSubtext || scheme.interest_subtext || '',
     subsidyDetails: scheme.subsidyDetails || '',
+    subsidyBadge: scheme.subsidyBadge || scheme.subsidy_badge || '',
+    rateFootnote: scheme.rateFootnote || scheme.rate_footnote || '',
     natureOfLoan: scheme.natureOfLoan || '',
     repaymentPeriod: scheme.repaymentPeriod || '',
+    repaymentSubtext: scheme.repaymentSubtext || scheme.repayment_subtext || '',
     gracePeriod: scheme.gracePeriod || '',
+    graceSubtext: scheme.graceSubtext || scheme.grace_subtext || '',
     beneficiaries: rawBeneficiaries,
     requirements: rawRequirements,
     locations: formatArrayField(scheme.locations),
     servicesProvided: formatArrayField(scheme.servicesProvided),
     implementationArrangements: scheme.implementationArrangements || '',
+    operationalArrangements: scheme.operationalCostNote || scheme.operational_cost_note || scheme.operational_arrangements || scheme.operationalArrangements || '',
+    operationalCostNote: scheme.operationalCostNote || scheme.operational_cost_note || scheme.operational_arrangements || scheme.operationalArrangements || '',
+    centerLocationsTable: rawCenterLocations || [],
+    locationsTable: rawCenterLocations || [],
+    customMetrics: scheme.customMetrics || scheme.custom_metrics || [],
+    customSections: scheme.customSections || scheme.custom_sections || [],
     otherInitiatives: scheme.otherInitiatives || '',
     contactInfo: scheme.contactInfo || '',
+    operationalGuidelineUrl: scheme.operationalGuidelineUrl || scheme.guidelineFileUrl || '',
+    operationalGuidelineFileName: scheme.operationalGuidelineFileName || scheme.guidelineFileName || '',
     purpose: rawPurpose,
     eligibility: rawRequirements,
-    participatingBanks: scheme.participatingBanks || '',
+    participatingBanks: isOtherFacility(scheme) ? '' : (scheme.participatingBanks || ''),
     description: scheme.description || '',
-    icon: scheme.icon || (scheme.schemeType === 'SERVICE' ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd'),
+    icon: scheme.icon || (isOtherFacility(scheme) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd'),
+    showOtherBadge: Boolean(scheme.showOtherBadge || scheme.show_other_badge),
     status: getSchemeStatus(scheme),
     active: getSchemeStatus(scheme) !== 'DRAFT'
   };
@@ -1529,6 +2658,7 @@ const openEditModal = (scheme) => {
 
 const closeModal = () => {
   showModal.value = false;
+  selectedGuidelineFile.value = null;
 };
 
 const saveScheme = async () => {
@@ -1551,25 +2681,126 @@ const saveScheme = async () => {
         form.value.eligibility = form.value.requirements;
       }
     }
+    if (isServicesListMode.value) {
+      form.value.servicesProvided = listToRaw(servicesProvidedPoints.value);
+    }
+
+    form.value.participatingBanks = selectedBanks.value.join(', ');
 
     const payload = { ...form.value };
+    payload.showOtherBadge = Boolean(form.value.showOtherBadge);
+
+    // Sanitize citation artifacts from all text inputs
+    payload.title = cleanCitations(payload.title);
+    payload.category = cleanCitations(payload.category);
+    payload.maxAmount = cleanCitations(payload.maxAmount);
+    payload.maxLoanSubtext = cleanCitations(payload.maxLoanSubtext);
+    payload.interestRate = cleanCitations(payload.interestRate);
+    payload.interestSubtext = cleanCitations(payload.interestSubtext);
+    payload.subsidyDetails = cleanCitations(payload.subsidyDetails);
+    payload.subsidyBadge = cleanCitations(payload.subsidyBadge);
+    payload.rateFootnote = cleanCitations(payload.rateFootnote);
+    payload.natureOfLoan = cleanCitations(payload.natureOfLoan);
+    payload.repaymentPeriod = cleanCitations(payload.repaymentPeriod);
+    payload.repaymentSubtext = cleanCitations(payload.repaymentSubtext);
+    payload.gracePeriod = cleanCitations(payload.gracePeriod);
+    payload.graceSubtext = cleanCitations(payload.graceSubtext);
+    payload.description = cleanCitations(payload.description);
+    payload.purpose = cleanCitations(payload.purpose);
+    payload.beneficiaries = cleanCitations(payload.beneficiaries);
+    payload.requirements = cleanCitations(payload.requirements);
+    payload.eligibility = cleanCitations(payload.eligibility);
+    payload.implementationArrangements = cleanCitations(payload.implementationArrangements);
+    payload.operationalCostNote = cleanCitations(form.value.operationalCostNote || form.value.operationalArrangements);
+    payload.operationalArrangements = payload.operationalCostNote;
+    payload.operational_arrangements = payload.operationalCostNote;
+    payload.otherInitiatives = cleanCitations(payload.otherInitiatives);
+    payload.contactInfo = cleanCitations(payload.contactInfo);
+
+    // Handle Operational Guideline PDF file upload if a new file was chosen
+    if (selectedGuidelineFile.value) {
+      const formData = new FormData();
+      formData.append('file', selectedGuidelineFile.value);
+      const uploadRes = await axios.post('/api/v1/services/upload-guideline', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (uploadRes.data?.url || uploadRes.data?.operationalGuidelineUrl) {
+        const fileUrl = uploadRes.data.url || uploadRes.data.operationalGuidelineUrl;
+        const fileName = uploadRes.data.fileName || uploadRes.data.operationalGuidelineFileName || selectedGuidelineFile.value.name;
+        payload.operationalGuidelineUrl = fileUrl;
+        payload.operationalGuidelineFileName = fileName;
+        form.value.operationalGuidelineUrl = fileUrl;
+        form.value.operationalGuidelineFileName = fileName;
+      }
+    } else {
+      payload.operationalGuidelineUrl = form.value.operationalGuidelineUrl || null;
+      payload.operationalGuidelineFileName = form.value.operationalGuidelineFileName || null;
+    }
 
     // Format locations as JSON array string
     if (payload.locations && typeof payload.locations === 'string') {
-      const locArray = payload.locations.split(',').map(s => s.trim()).filter(Boolean);
+      const locArray = payload.locations.split(',').map(s => cleanCitations(s)).filter(Boolean);
       payload.locations = locArray.length > 0 ? JSON.stringify(locArray) : null;
     }
 
     // Format servicesProvided as JSON array string
     if (payload.servicesProvided && typeof payload.servicesProvided === 'string') {
-      const srvArray = payload.servicesProvided.split(',').map(s => s.trim()).filter(Boolean);
+      const srvArray = parseRawToList(payload.servicesProvided).map(s => cleanCitations(s)).filter(Boolean);
       payload.servicesProvided = srvArray.length > 0 ? JSON.stringify(srvArray) : null;
     }
 
-    // Default financial terms for non-loan institutional services
+    // Serialize custom sections
+    const validSections = customSectionRows.value
+      .map(s => ({
+        title: cleanCitations(s.title),
+        type: s.type || 'bullets',
+        items: Array.isArray(s.items) ? s.items.map(it => cleanCitations(it)).filter(Boolean) : [],
+        content: cleanCitations(s.content)
+      }))
+      .filter(s => s.title && ((s.type === 'bullets' && s.items.length > 0) || (s.type !== 'bullets' && s.content)));
+    payload.customSections = validSections.length > 0 ? validSections : null;
+
+    // Default financial terms for non-loan institutional services and strictly remove banks
     if (isOtherFacility(payload)) {
       if (!payload.maxAmount) payload.maxAmount = 'N/A';
       if (!payload.interestRate) payload.interestRate = 'N/A';
+      payload.participatingBanks = ''; // Strictly clear PFIs for Institutional Services
+
+      const validMetrics = customMetricsRows.value
+        .map(m => ({
+          label: cleanCitations(m.label),
+          value: cleanCitations(m.value),
+          subtext: cleanCitations(m.subtext),
+          icon: (m.icon || 'fas fa-info-circle').trim()
+        }))
+        .filter(m => m.label || m.value);
+      payload.customMetrics = validMetrics.length > 0 ? validMetrics : null;
+
+      const validRows = centerLocationRows.value
+        .map(r => ({
+          district: cleanCitations(r.district || ''),
+          warehouseName: cleanCitations(r.warehouseName || r.facilityName || ''),
+          facilityName: cleanCitations(r.warehouseName || r.facilityName || ''),
+          address: cleanCitations(r.address || ''),
+          storageCapacity: cleanCitations(r.storageCapacity || r.capacity || ''),
+          capacity: cleanCitations(r.storageCapacity || r.capacity || ''),
+          contactNumber: cleanCitations(r.contactNumber || '')
+        }))
+        .filter(r => r.district || r.warehouseName || r.facilityName || r.address || r.storageCapacity || r.capacity || r.contactNumber);
+
+      payload.center_locations_table = validRows;
+      payload.centerLocationsTable = validRows;
+      payload.locationsTable = validRows;
+
+      // Auto populate locations summary if locations is empty
+      if (!payload.locations && validRows.length > 0) {
+        const uniqueDistricts = [...new Set(validRows.map(r => r.district).filter(Boolean))];
+        if (uniqueDistricts.length > 0) {
+          payload.locations = JSON.stringify(uniqueDistricts);
+        }
+      }
+    } else {
+      payload.customMetrics = null;
     }
 
     // Ensure status and active synchronization
@@ -1582,6 +2813,7 @@ const saveScheme = async () => {
       await axios.post('/api/v1/services', payload);
     }
     showModal.value = false;
+    selectedGuidelineFile.value = null;
     await fetchSchemes();
   } catch (error) {
     console.error('Failed to save scheme:', error);

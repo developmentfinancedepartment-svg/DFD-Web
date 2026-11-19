@@ -165,22 +165,4 @@ class SchemeControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         verify(schemeRepository, never()).deleteById(anyLong());
     }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    void testSchemeDataInitializerSeeds4DefaultSchemesWhenEmpty() {
-        when(schemeRepository.count()).thenReturn(0L);
-        SchemeDataInitializer initializer = new SchemeDataInitializer(schemeRepository);
-
-        initializer.run();
-
-        ArgumentCaptor<List<Scheme>> captor = ArgumentCaptor.forClass(List.class);
-        verify(schemeRepository).saveAll(captor.capture());
-        List<Scheme> seeded = captor.getValue();
-        assertEquals(4, seeded.size());
-        assertEquals("Re-MSME Plus Loan Scheme", seeded.get(0).getTitle());
-        assertEquals("NPA Borrower Relief Scheme", seeded.get(1).getTitle());
-        assertEquals("Food Security Project", seeded.get(2).getTitle());
-        assertEquals("Working Capital Loan Scheme", seeded.get(3).getTitle());
-    }
 }

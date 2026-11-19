@@ -57,6 +57,40 @@ public class SchemeController {
         return ResponseEntity.ok(schemeRepository.findAll());
     }
 
+    private String stripCitations(String text) {
+        if (text == null) return null;
+        return text.replaceAll("\\[cite:[^\\]]*\\]", "")
+                   .replaceAll("【[^】]*】", "")
+                   .trim();
+    }
+
+    private void sanitizeScheme(Scheme scheme) {
+        if (scheme == null) return;
+        scheme.setTitle(stripCitations(scheme.getTitle()));
+        scheme.setDescription(stripCitations(scheme.getDescription()));
+        scheme.setPurpose(stripCitations(scheme.getPurpose()));
+        scheme.setEligibility(stripCitations(scheme.getEligibility()));
+        scheme.setBeneficiaries(stripCitations(scheme.getBeneficiaries()));
+        scheme.setRequirements(stripCitations(scheme.getRequirements()));
+        scheme.setMaxAmount(stripCitations(scheme.getMaxAmount()));
+        scheme.setMaxLoanSubtext(stripCitations(scheme.getMaxLoanSubtext()));
+        scheme.setInterestRate(stripCitations(scheme.getInterestRate()));
+        scheme.setInterestSubtext(stripCitations(scheme.getInterestSubtext()));
+        scheme.setSubsidyBadge(stripCitations(scheme.getSubsidyBadge()));
+        scheme.setRateFootnote(stripCitations(scheme.getRateFootnote()));
+        scheme.setRepaymentPeriod(stripCitations(scheme.getRepaymentPeriod()));
+        scheme.setRepaymentSubtext(stripCitations(scheme.getRepaymentSubtext()));
+        scheme.setGracePeriod(stripCitations(scheme.getGracePeriod()));
+        scheme.setGraceSubtext(stripCitations(scheme.getGraceSubtext()));
+        scheme.setNatureOfLoan(stripCitations(scheme.getNatureOfLoan()));
+        scheme.setSubsidyDetails(stripCitations(scheme.getSubsidyDetails()));
+        scheme.setImplementationArrangements(stripCitations(scheme.getImplementationArrangements()));
+        scheme.setOperationalArrangements(stripCitations(scheme.getOperationalArrangements()));
+        scheme.setOperationalCostNote(stripCitations(scheme.getOperationalCostNote()));
+        scheme.setOtherInitiatives(stripCitations(scheme.getOtherInitiatives()));
+        scheme.setContactInfo(stripCitations(scheme.getContactInfo()));
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Scheme> createScheme(@RequestBody Scheme scheme) {
@@ -70,6 +104,7 @@ public class SchemeController {
         if (scheme.getShowOtherBadge() == null) {
             scheme.setShowOtherBadge(false);
         }
+        sanitizeScheme(scheme);
         Scheme savedScheme = schemeRepository.save(scheme);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedScheme);
     }
@@ -83,7 +118,11 @@ public class SchemeController {
                     existingScheme.setCategory(schemeDetails.getCategory());
                     existingScheme.setSchemeType(schemeDetails.getSchemeType() != null ? schemeDetails.getSchemeType() : "LOAN");
                     existingScheme.setMaxAmount(schemeDetails.getMaxAmount());
+                    existingScheme.setMaxLoanSubtext(schemeDetails.getMaxLoanSubtext());
                     existingScheme.setInterestRate(schemeDetails.getInterestRate());
+                    existingScheme.setInterestSubtext(schemeDetails.getInterestSubtext());
+                    existingScheme.setSubsidyBadge(schemeDetails.getSubsidyBadge());
+                    existingScheme.setRateFootnote(schemeDetails.getRateFootnote());
                     existingScheme.setNatureOfLoan(schemeDetails.getNatureOfLoan());
                     existingScheme.setSubsidyDetails(schemeDetails.getSubsidyDetails());
                     existingScheme.setDescription(schemeDetails.getDescription());
@@ -94,7 +133,9 @@ public class SchemeController {
                         existingScheme.setActive(schemeDetails.isActive());
                     }
                     existingScheme.setRepaymentPeriod(schemeDetails.getRepaymentPeriod());
+                    existingScheme.setRepaymentSubtext(schemeDetails.getRepaymentSubtext());
                     existingScheme.setGracePeriod(schemeDetails.getGracePeriod());
+                    existingScheme.setGraceSubtext(schemeDetails.getGraceSubtext());
                     existingScheme.setPurpose(schemeDetails.getPurpose());
                     existingScheme.setEligibility(schemeDetails.getEligibility());
                     existingScheme.setParticipatingBanks(schemeDetails.getParticipatingBanks());
@@ -103,14 +144,19 @@ public class SchemeController {
                     existingScheme.setLocationsRaw(schemeDetails.getLocationsRaw());
                     existingScheme.setServicesProvidedRaw(schemeDetails.getServicesProvidedRaw());
                     existingScheme.setCenterLocationsTableRaw(schemeDetails.getCenterLocationsTableRaw());
+                    existingScheme.setLocationsTableRaw(schemeDetails.getLocationsTableRaw());
+                    existingScheme.setCustomMetricsRaw(schemeDetails.getCustomMetricsRaw());
                     existingScheme.setOperationalArrangements(schemeDetails.getOperationalArrangements());
+                    existingScheme.setOperationalCostNote(schemeDetails.getOperationalCostNote());
                     existingScheme.setImplementationArrangements(schemeDetails.getImplementationArrangements());
                     existingScheme.setOtherInitiatives(schemeDetails.getOtherInitiatives());
                     existingScheme.setContactInfo(schemeDetails.getContactInfo());
                     existingScheme.setOperationalGuidelineUrl(schemeDetails.getOperationalGuidelineUrl());
                     existingScheme.setOperationalGuidelineFileName(schemeDetails.getOperationalGuidelineFileName());
                     existingScheme.setShowOtherBadge(schemeDetails.getShowOtherBadge());
+                    existingScheme.setCustomSectionsRaw(schemeDetails.getCustomSectionsRaw());
 
+                    sanitizeScheme(existingScheme);
                     Scheme updatedScheme = schemeRepository.save(existingScheme);
                     return ResponseEntity.ok(updatedScheme);
                 })

@@ -95,6 +95,36 @@ public class Scheme {
 
     private String operationalGuidelineFileName;
 
+    @Column(columnDefinition = "TEXT")
+    private String maxLoanSubtext;
+
+    @Column(columnDefinition = "TEXT")
+    private String interestSubtext;
+
+    @Column(columnDefinition = "TEXT")
+    private String subsidyBadge;
+
+    @Column(columnDefinition = "TEXT")
+    private String rateFootnote;
+
+    @Column(columnDefinition = "TEXT")
+    private String repaymentSubtext;
+
+    @Column(columnDefinition = "TEXT")
+    private String graceSubtext;
+
+    @Column(columnDefinition = "TEXT")
+    private String customMetrics; // JSON array of { label, value, subtext, icon }
+
+    @Column(columnDefinition = "TEXT")
+    private String locationsTable; // JSON array of { district, facilityName, address, capacity, contactNumber }
+
+    @Column(columnDefinition = "TEXT")
+    private String operationalCostNote; // Highlighted operational cost callout note
+
+    @Column(columnDefinition = "TEXT")
+    private String customSections; // JSON array of { title, type, items, content }
+
     public Scheme() {
     }
 
@@ -596,5 +626,226 @@ public class Scheme {
         if (guidelineFileName != null && !guidelineFileName.trim().isEmpty()) {
             this.operationalGuidelineFileName = guidelineFileName;
         }
+    }
+
+    // --- Metric Cards Structured Subtext & Footnote Slots ---
+
+    @JsonProperty("maxLoanAmount")
+    public String getMaxLoanAmount() {
+        return this.maxAmount;
+    }
+
+    @JsonProperty("maxLoanAmount")
+    public void setMaxLoanAmount(String maxLoanAmount) {
+        if (maxLoanAmount != null && !maxLoanAmount.trim().isEmpty()) {
+            this.maxAmount = maxLoanAmount;
+        }
+    }
+
+    public String getMaxLoanSubtext() {
+        return maxLoanSubtext;
+    }
+
+    @JsonProperty("maxLoanSubtext")
+    @JsonAlias({"maxLoanSubtext", "max_loan_subtext"})
+    public void setMaxLoanSubtext(String maxLoanSubtext) {
+        this.maxLoanSubtext = maxLoanSubtext;
+    }
+
+    public String getInterestSubtext() {
+        return interestSubtext;
+    }
+
+    @JsonProperty("interestSubtext")
+    @JsonAlias({"interestSubtext", "interest_subtext"})
+    public void setInterestSubtext(String interestSubtext) {
+        this.interestSubtext = interestSubtext;
+    }
+
+    public String getSubsidyBadge() {
+        return subsidyBadge;
+    }
+
+    @JsonProperty("subsidyBadge")
+    @JsonAlias({"subsidyBadge", "subsidy_badge"})
+    public void setSubsidyBadge(String subsidyBadge) {
+        this.subsidyBadge = subsidyBadge;
+    }
+
+    public String getRateFootnote() {
+        return rateFootnote;
+    }
+
+    @JsonProperty("rateFootnote")
+    @JsonAlias({"rateFootnote", "rate_footnote"})
+    public void setRateFootnote(String rateFootnote) {
+        this.rateFootnote = rateFootnote;
+    }
+
+    public String getRepaymentSubtext() {
+        return repaymentSubtext;
+    }
+
+    @JsonProperty("repaymentSubtext")
+    @JsonAlias({"repaymentSubtext", "repayment_subtext"})
+    public void setRepaymentSubtext(String repaymentSubtext) {
+        this.repaymentSubtext = repaymentSubtext;
+    }
+
+    public String getGraceSubtext() {
+        return graceSubtext;
+    }
+
+    @JsonProperty("graceSubtext")
+    @JsonAlias({"graceSubtext", "grace_subtext"})
+    public void setGraceSubtext(String graceSubtext) {
+        this.graceSubtext = graceSubtext;
+    }
+
+    // --- Custom Metrics for Institutional Services (OTHER / SERVICE) ---
+
+    @JsonProperty("customMetrics")
+    public Object getCustomMetrics() {
+        if (this.customMetrics == null) return null;
+        String trimmed = this.customMetrics.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                return OBJECT_MAPPER.readTree(trimmed);
+            } catch (Exception ignored) {}
+        }
+        return this.customMetrics;
+    }
+
+    @JsonProperty("customMetrics")
+    @JsonAlias({"customMetrics", "custom_metrics"})
+    public void setCustomMetrics(JsonNode node) {
+        if (node == null || node.isNull()) {
+            this.customMetrics = null;
+        } else if (node.isTextual()) {
+            this.customMetrics = node.asText();
+        } else {
+            this.customMetrics = node.toString();
+        }
+    }
+
+    @JsonIgnore
+    public String getCustomMetricsRaw() {
+        return this.customMetrics;
+    }
+
+    @JsonIgnore
+    public void setCustomMetricsRaw(String customMetrics) {
+        this.customMetrics = customMetrics;
+    }
+
+    // --- Dynamic Locations Table ---
+
+    @JsonProperty("locationsTable")
+    public Object getLocationsTable() {
+        String val = this.locationsTable != null ? this.locationsTable : this.centerLocationsTable;
+        if (val == null) return null;
+        String trimmed = val.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                return OBJECT_MAPPER.readTree(trimmed);
+            } catch (Exception ignored) {}
+        }
+        return val;
+    }
+
+    @JsonProperty("locationsTable")
+    @JsonAlias({"locationsTable", "locations_table"})
+    public void setLocationsTable(JsonNode node) {
+        if (node == null || node.isNull()) {
+            this.locationsTable = null;
+        } else if (node.isTextual()) {
+            this.locationsTable = node.asText();
+            if (this.centerLocationsTable == null) {
+                this.centerLocationsTable = this.locationsTable;
+            }
+        } else {
+            this.locationsTable = node.toString();
+            if (this.centerLocationsTable == null) {
+                this.centerLocationsTable = this.locationsTable;
+            }
+        }
+    }
+
+    @JsonIgnore
+    public String getLocationsTableRaw() {
+        return this.locationsTable != null ? this.locationsTable : this.centerLocationsTable;
+    }
+
+    @JsonIgnore
+    public void setLocationsTableRaw(String locationsTable) {
+        this.locationsTable = locationsTable;
+        if (this.centerLocationsTable == null) {
+            this.centerLocationsTable = locationsTable;
+        }
+    }
+
+    // --- Operational Cost Note ---
+
+    @JsonProperty("operationalCostNote")
+    public String getOperationalCostNote() {
+        return this.operationalCostNote != null ? this.operationalCostNote : this.operationalArrangements;
+    }
+
+    @JsonProperty("operationalCostNote")
+    @JsonAlias({"operationalCostNote", "operational_cost_note"})
+    public void setOperationalCostNote(String operationalCostNote) {
+        this.operationalCostNote = operationalCostNote;
+        if (this.operationalArrangements == null) {
+            this.operationalArrangements = operationalCostNote;
+        }
+    }
+
+    @JsonIgnore
+    public String getOperationalCostNoteRaw() {
+        return this.operationalCostNote;
+    }
+
+    @JsonIgnore
+    public void setOperationalCostNoteRaw(String operationalCostNote) {
+        this.operationalCostNote = operationalCostNote;
+        if (this.operationalArrangements == null) {
+            this.operationalArrangements = operationalCostNote;
+        }
+    }
+
+    // --- Custom Dynamic Sections ---
+
+    @JsonProperty("customSections")
+    public Object getCustomSections() {
+        if (this.customSections == null) return null;
+        String trimmed = this.customSections.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                return OBJECT_MAPPER.readTree(trimmed);
+            } catch (Exception ignored) {}
+        }
+        return this.customSections;
+    }
+
+    @JsonProperty("customSections")
+    @JsonAlias({"customSections", "custom_sections"})
+    public void setCustomSections(JsonNode node) {
+        if (node == null || node.isNull()) {
+            this.customSections = null;
+        } else if (node.isTextual()) {
+            this.customSections = node.asText();
+        } else {
+            this.customSections = node.toString();
+        }
+    }
+
+    @JsonIgnore
+    public String getCustomSectionsRaw() {
+        return this.customSections;
+    }
+
+    @JsonIgnore
+    public void setCustomSectionsRaw(String customSections) {
+        this.customSections = customSections;
     }
 }

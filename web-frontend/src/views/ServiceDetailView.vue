@@ -21,34 +21,55 @@
         <div class="metrics-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
           <!-- SERVICE METRICS -->
           <template v-if="isService">
-            <div class="metric-card">
-              <div class="metric-icon"><i class="fas fa-map-marked-alt"></i></div>
-              <div class="metric-info">
-                <span class="metric-label text-xs">Coverage / Locations</span>
-                <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceCoverageText }}</span>
+            <template v-if="parsedCustomMetrics.length > 0">
+              <div v-for="(metric, mIdx) in parsedCustomMetrics" :key="'cm-' + mIdx" class="metric-card">
+                <div class="metric-icon"><i :class="metric.icon || 'fas fa-check-circle'"></i></div>
+                <div class="metric-info">
+                  <span class="metric-label text-xs">{{ metric.label }}</span>
+                  <div class="metric-value-wrap">
+                    <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">
+                      {{ metric.value }}
+                    </span>
+                    <span
+                      v-if="metric.subtext"
+                      class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
+                    >
+                      {{ metric.subtext }}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon"><i class="fas fa-landmark"></i></div>
-              <div class="metric-info">
-                <span class="metric-label text-xs">Managing Partner</span>
-                <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceManagingPartnerText }}</span>
+            </template>
+            <template v-else>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="metric-info">
+                  <span class="metric-label text-xs">Coverage / Locations</span>
+                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceCoverageText }}</span>
+                </div>
               </div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon"><i class="fas fa-user-shield"></i></div>
-              <div class="metric-info">
-                <span class="metric-label text-xs">Supervision</span>
-                <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceSupervisionText }}</span>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-landmark"></i></div>
+                <div class="metric-info">
+                  <span class="metric-label text-xs">Managing Partner</span>
+                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceManagingPartnerText }}</span>
+                </div>
               </div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-icon"><i class="fas fa-warehouse"></i></div>
-              <div class="metric-info">
-                <span class="metric-label text-xs">Core Facilities</span>
-                <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceCoreFacilitiesText }}</span>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-user-shield"></i></div>
+                <div class="metric-info">
+                  <span class="metric-label text-xs">Supervision</span>
+                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceSupervisionText }}</span>
+                </div>
               </div>
-            </div>
+              <div class="metric-card">
+                <div class="metric-icon"><i class="fas fa-warehouse"></i></div>
+                <div class="metric-info">
+                  <span class="metric-label text-xs">Core Facilities</span>
+                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">{{ serviceCoreFacilitiesText }}</span>
+                </div>
+              </div>
+            </template>
           </template>
 
           <!-- LOAN METRICS -->
@@ -60,13 +81,13 @@
                 <span class="metric-label text-xs">Max Loan Amount</span>
                 <div class="metric-value-wrap">
                   <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">
-                    {{ formatMetricValue(service.maxAmount || service.maxLoan).primary }}
+                    {{ displayMaxLoanAmount.primary }}
                   </span>
                   <span
-                    v-if="formatMetricValue(service.maxAmount || service.maxLoan).subtitle"
+                    v-if="displayMaxLoanAmount.subtext"
                     class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
                   >
-                    {{ formatMetricValue(service.maxAmount || service.maxLoan).subtitle }}
+                    {{ displayMaxLoanAmount.subtext }}
                   </span>
                 </div>
               </div>
@@ -78,30 +99,28 @@
               <div class="metric-info">
                 <span class="metric-label text-xs">Interest Rate</span>
                 <div class="metric-value-wrap">
-                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">
-                    {{ formatMetricValue(service.interestRate).primary }}
-                  </span>
-                  <span
-                    v-if="formatMetricValue(service.interestRate).subtitle"
-                    class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
-                  >
-                    {{ formatMetricValue(service.interestRate).subtitle }}
+                  <div class="rate-display-row flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5">
+                    <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-normal">
+                      {{ displayInterestRate.primary }}
+                    </span>
+                    <span
+                      v-if="displayInterestRate.subtext"
+                      class="metric-subtitle text-xs font-semibold text-slate-500 whitespace-nowrap mt-0"
+                    >
+                      {{ displayInterestRate.subtext }}
+                    </span>
+                  </div>
+                </div>
+                <!-- Subsidy Badge -->
+                <div v-if="displaySubsidyBadge" class="subsidy-breakdown-row mt-1.5 flex flex-wrap gap-1.5">
+                  <span class="badge-pill-subsidy whitespace-normal text-left leading-snug" :title="displaySubsidyBadge">
+                    <i class="fas fa-gift me-1 shrink-0"></i> <span>{{ displaySubsidyBadge }}</span>
                   </span>
                 </div>
-                <div v-if="rateBreakdown" class="subsidy-breakdown-row mt-1.5 flex flex-wrap gap-1.5">
-                  <template v-if="rateBreakdown.type === 'split'">
-                    <span class="badge-pill-customer whitespace-normal text-left leading-snug">
-                      Customer: {{ rateBreakdown.customer }}
-                    </span>
-                    <span class="badge-pill-subsidy whitespace-normal text-left leading-snug">
-                      Govt. Subsidy: {{ rateBreakdown.subsidy }}
-                    </span>
-                  </template>
-                  <template v-else>
-                    <span class="badge-pill-subsidy whitespace-normal text-left leading-snug" :title="rateBreakdown.text">
-                      <i class="fas fa-gift me-1 shrink-0"></i> <span>{{ rateBreakdown.text }}</span>
-                    </span>
-                  </template>
+                <!-- Subtle Footnote / Disclaimer -->
+                <div v-if="displayRateFootnote" class="metric-footnote">
+                  <i class="fas fa-info-circle text-[10px] text-teal me-1 shrink-0 mt-0.5"></i>
+                  <span class="break-words font-medium">{{ displayRateFootnote }}</span>
                 </div>
               </div>
             </div>
@@ -112,15 +131,25 @@
               <div class="metric-info">
                 <span class="metric-label text-xs">Repayment Period</span>
                 <div class="metric-value-wrap">
-                  <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug">
-                    {{ formatMetricValue(service.repaymentPeriod).primary }}
-                  </span>
-                  <span
-                    v-if="formatMetricValue(service.repaymentPeriod).subtitle"
-                    class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
+                  <div
+                    class="metric-value font-bold text-slate-900 leading-snug"
+                    :class="displayRepayment.isSlashSeparated ? 'text-[0.95rem] sm:text-[1.05rem]' : 'text-lg sm:text-xl'"
                   >
-                    {{ formatMetricValue(service.repaymentPeriod).subtitle }}
-                  </span>
+                    <template v-if="displayRepayment.isSlashSeparated && displayRepayment.primaries.length > 1">
+                      <span class="inline-block whitespace-nowrap">{{ displayRepayment.primaries[0] }}</span>
+                      <span class="text-slate-400 font-normal mx-1">/</span>
+                      <span class="inline-block whitespace-nowrap">{{ displayRepayment.primaries[1] }}</span>
+                    </template>
+                    <template v-else>
+                      <span class="break-words">{{ displayRepayment.primary }}</span>
+                    </template>
+                  </div>
+                  <div
+                    v-if="displayRepayment.subtext"
+                    class="metric-subtitle text-[11px] sm:text-xs font-medium text-slate-500 mt-1 leading-snug"
+                  >
+                    <span class="break-words">{{ displayRepayment.subtext }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -135,13 +164,13 @@
                     class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug"
                     :class="{ 'text-muted-grace font-semibold text-slate-500': !hasGracePeriod }"
                   >
-                    {{ hasGracePeriod ? formatMetricValue(service.gracePeriod).primary : 'No Grace Period' }}
+                    {{ displayGracePeriod.primary }}
                   </span>
                   <span
-                    v-if="hasGracePeriod && formatMetricValue(service.gracePeriod).subtitle"
+                    v-if="hasGracePeriod && displayGracePeriod.subtext"
                     class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
                   >
-                    {{ formatMetricValue(service.gracePeriod).subtitle }}
+                    {{ displayGracePeriod.subtext }}
                   </span>
                 </div>
               </div>
@@ -155,7 +184,7 @@
           <div class="detail-block" v-if="hasContent(service.purpose || service.objective || service.description)">
             <h3 class="text-lg sm:text-xl font-bold">
               <i class="fas fa-bullseye me-2 text-teal"></i>
-              {{ isService ? 'Program Background & Objectives' : 'Scheme Purpose & Objective' }}
+              {{ isService ? 'Program Background & Objectives' : 'Scheme Purpose & Objectives' }}
             </h3>
             <div v-if="parsedPurposeList.length > 1" class="checklist-container">
               <div v-for="(item, idx) in parsedPurposeList" :key="idx" class="checklist-item">
@@ -290,7 +319,7 @@
           </div>
 
           <!-- 9. Operational Costs & Revenue Arrangements (Clean Info Card) -->
-          <div class="detail-block" v-if="hasContent(service.operationalArrangements || service.operational_arrangements)">
+          <div class="detail-block" v-if="hasContent(service.operationalCostNote || service.operationalArrangements || service.operational_arrangements)">
             <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-coins me-2 text-teal"></i> Operational Costs &amp; Revenue Arrangements</h3>
             <div class="op-arrangements-card">
               <div class="op-arrangements-icon">
@@ -298,11 +327,46 @@
               </div>
               <div class="op-arrangements-body">
                 <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
-                  {{ service.operationalArrangements || service.operational_arrangements }}
+                  {{ service.operationalCostNote || service.operationalArrangements || service.operational_arrangements }}
                 </p>
               </div>
             </div>
           </div>
+
+          <!-- Dynamic Custom Sections (Rendered 100% dynamically from API / DB) -->
+          <template v-if="parsedCustomSections.length > 0">
+            <div v-for="(sec, sIdx) in parsedCustomSections" :key="'sec-' + sIdx" class="detail-block">
+              <h3 class="text-lg sm:text-xl font-bold">
+                <i class="fas fa-layer-group me-2 text-teal"></i>
+                {{ sec.title }}
+              </h3>
+
+              <!-- Bullets Format -->
+              <div v-if="sec.type === 'bullets'" class="checklist-container">
+                <div v-for="(item, idx) in sec.items" :key="idx" class="checklist-item">
+                  <div class="check-icon-circle"><i class="fas fa-check"></i></div>
+                  <span class="checklist-text whitespace-normal break-words text-base leading-relaxed">{{ item }}</span>
+                </div>
+              </div>
+
+              <!-- Callout Format -->
+              <div v-else-if="sec.type === 'callout'" class="op-arrangements-card">
+                <div class="op-arrangements-icon">
+                  <i class="fas fa-lightbulb text-teal text-xl"></i>
+                </div>
+                <div class="op-arrangements-body">
+                  <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
+                    {{ sec.content }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Text Format -->
+              <p v-else class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
+                {{ sec.content }}
+              </p>
+            </div>
+          </template>
 
           <!-- 10. Participating Financial Institutions (PFIs - Loan Schemes Only) -->
           <div class="detail-block" v-if="!isService && parsedBanks.length > 0">
@@ -311,17 +375,17 @@
               <span 
                 v-for="(bank, index) in parsedBanks" 
                 :key="index" 
-                class="bank-pill text-base"
+                class="bank-pill"
               >
-                <i class="fas fa-building-columns me-1.5 opacity-70"></i>
-                {{ bank }}
+                <i class="fas fa-building-columns me-1.5 opacity-70 shrink-0"></i>
+                <span class="whitespace-nowrap">{{ bank }}</span>
               </span>
             </div>
           </div>
 
-          <!-- 11. Other Related Initiatives -->
+          <!-- 11. Related Initiatives -->
           <div class="detail-block" v-if="hasContent(service.otherInitiatives)">
-            <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-project-diagram me-2 text-teal"></i> Other Related Initiatives</h3>
+            <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-project-diagram me-2 text-teal"></i> Related Initiatives</h3>
             <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">{{ service.otherInitiatives }}</p>
           </div>
 
@@ -436,15 +500,15 @@ const formatMetricValue = (val) => {
     return { primary: 'N/A', subtitle: '' };
   }
 
-  // If no parentheses, return full string as primary
+  // If no parentheses, return full string as primary, safeguarding trailing asterisks
   if (!trimmed.includes('(') || !trimmed.includes(')')) {
-    return { primary: trimmed, subtitle: '' };
+    return { primary: trimmed.replace(/\s+\*/g, '\u00A0*'), subtitle: '' };
   }
 
   const parseSegment = (seg) => {
     const s = seg.trim();
     const match = s.match(/^(.*?)\((.*?)\)(.*)$/);
-    if (!match) return { primary: s, subtitle: '' };
+    if (!match) return { primary: s.replace(/\s+\*/g, '\u00A0*'), subtitle: '' };
 
     let fig = (match[1] + ' ' + match[3]).trim().replace(/\s+/g, ' ');
     let note = match[2].trim();
@@ -458,7 +522,7 @@ const formatMetricValue = (val) => {
     }
 
     return {
-      primary: fig || s,
+      primary: (fig || s).replace(/\s+\*/g, '\u00A0*'),
       subtitle: note ? `(${note})` : ''
     };
   };
@@ -486,13 +550,237 @@ const formatMetricValue = (val) => {
   return parseSegment(trimmed);
 };
 
+// Interest Rate & Subsidy Field Resolution (supporting both service.* and backend naming)
+const rawInterestRate = computed(() => {
+  return service.value?.interestRate || service.value?.customerInterestRate || '';
+});
+
+const rawSubsidyDetails = computed(() => {
+  return service.value?.subsidyDetails || service.value?.governmentSubsidyDetails || '';
+});
+
+/**
+ * Extracts footnote or disclaimer note from interest rate or subsidy details.
+ * Prevents asterisk footnotes (e.g. "* Rate could be varied for semi-annual each allocations")
+ * from inflating the rate pill badges and places them at the bottom of the card.
+ */
+const rateFootnote = computed(() => {
+  const notes = [];
+  const rateStr = rawInterestRate.value;
+  const subStr = rawSubsidyDetails.value;
+
+  // 1. From interest rate: multiline asterisk note or parenthetical footnote (* ...)
+  if (rateStr && typeof rateStr === 'string') {
+    if (rateStr.includes('\n')) {
+      const lines = rateStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].startsWith('*') || /rate could be varied|allocation|note|disclaimer/i.test(lines[i])) {
+          notes.push(lines[i]);
+        }
+      }
+    }
+    const starParenMatch = rateStr.match(/\(\s*(\*[^)]+)\)/);
+    if (starParenMatch) {
+      notes.push(starParenMatch[1].trim());
+    }
+  }
+
+  // 2. From subsidy details: if starts with * or contains allocation disclaimer
+  if (subStr && typeof subStr === 'string') {
+    const trimmed = subStr.trim();
+    if (trimmed.includes('\n')) {
+      const lines = trimmed.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      for (const line of lines) {
+        if (line.startsWith('*') || /rate could be varied|allocation|note|disclaimer/i.test(line)) {
+          notes.push(line);
+        }
+      }
+    } else if (trimmed.startsWith('*') || /rate could be varied|allocation/i.test(trimmed)) {
+      notes.push(trimmed);
+    } else if (trimmed.includes('*')) {
+      const starIdx = trimmed.indexOf('*');
+      notes.push(trimmed.slice(starIdx).trim());
+    }
+  }
+
+  return [...new Set(notes)].join(' ');
+});
+
+/**
+ * Cleans base interest rate by removing footnote text lines so primary rate figure is clean.
+ */
+const cleanInterestRate = computed(() => {
+  let str = rawInterestRate.value;
+  if (!str || typeof str !== 'string') return '';
+  if (str.includes('\n')) {
+    str = str.split(/\r?\n/)[0].trim();
+  }
+  str = str.replace(/\(\s*\*[^)]+\)/g, '').trim();
+  return str;
+});
+
+/**
+ * Formats interest rate (e.g. "6% (Current) *") cleanly without awkward wrapping.
+ * Primary receives the main percentage figure, and subtitle receives parenthetical qualifiers with non-breaking asterisk.
+ */
+const parsedInterestRate = computed(() => {
+  const str = cleanInterestRate.value;
+  if (!str) return { primary: 'N/A', subtitle: '' };
+
+  const trimmed = str.trim();
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'n/a') {
+    return { primary: 'N/A', subtitle: '' };
+  }
+
+  // If no parentheses:
+  if (!trimmed.includes('(') || !trimmed.includes(')')) {
+    const safePrimary = trimmed.replace(/\s+\*/g, '\u00A0*');
+    return { primary: safePrimary, subtitle: '' };
+  }
+
+  const match = trimmed.match(/^(.*?)\((.*?)\)(.*)$/);
+  if (!match) {
+    return { primary: trimmed.replace(/\s+\*/g, '\u00A0*'), subtitle: '' };
+  }
+
+  const before = match[1].trim();
+  const inside = match[2].trim();
+  const after = match[3].trim();
+
+  let primary = before;
+  let subtitle = '';
+
+  if (after) {
+    subtitle = `(${inside})\u00A0${after}`.trim();
+  } else {
+    subtitle = `(${inside})`;
+  }
+
+  if (!primary && after) {
+    primary = after;
+    subtitle = `(${inside})`;
+  }
+
+  return {
+    primary: (primary || trimmed).replace(/\s+\*/g, '\u00A0*'),
+    subtitle: subtitle
+  };
+});
+
+/**
+ * Parses repayment period cleanly, handling slash-separated values and parenthetical sub-labels
+ * (e.g. "120 months / 24 months" with "(Investment & Joint Loans / Non-collateralized Working Capital)").
+ */
+const parsedRepayment = computed(() => {
+  const val = service.value?.repaymentPeriod;
+  if (!val || typeof val !== 'string') {
+    return {
+      primary: val || 'N/A',
+      subtitle: '',
+      isSlashSeparated: false,
+      primaries: [],
+      subtitles: []
+    };
+  }
+
+  const trimmed = val.trim();
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'n/a') {
+    return {
+      primary: 'N/A',
+      subtitle: '',
+      isSlashSeparated: false,
+      primaries: [],
+      subtitles: []
+    };
+  }
+
+  // Case 1: Trailing parentheses covering both or single subtitle:
+  // e.g. "120 months / 24 months (Investment & Joint Loans / Non-collateralized Working Capital)"
+  const parenMatch = trimmed.match(/^(.*?)\((.*?)\)$/);
+  if (parenMatch) {
+    const rawBefore = parenMatch[1].trim();
+    const rawInside = parenMatch[2].trim();
+
+    if (rawBefore.includes('/') && rawInside.includes('/')) {
+      const primaries = rawBefore.split('/').map(s => s.trim()).filter(Boolean);
+      const subtitles = rawInside.split('/').map(s => s.trim()).filter(Boolean);
+      return {
+        primary: primaries.join(' / '),
+        subtitle: `(${rawInside})`,
+        isSlashSeparated: primaries.length > 1,
+        primaries,
+        subtitles
+      };
+    }
+  }
+
+  // Case 2: Parentheses on each side of slash:
+  // e.g. "120 months (Investment & Joint Loans) / 24 months (Non-collateralized Working Capital)"
+  if (trimmed.includes('/')) {
+    const segments = trimmed.split('/');
+    const primaries = [];
+    const subtitles = [];
+
+    for (const seg of segments) {
+      const s = seg.trim();
+      const m = s.match(/^(.*?)\((.*?)\)(.*)$/);
+      if (m) {
+        let fig = (m[1] + ' ' + m[3]).trim().replace(/\s+/g, ' ');
+        let note = m[2].trim();
+        if (!/\d/.test(fig) && /\d/.test(note)) {
+          const tmp = fig;
+          fig = note;
+          note = tmp;
+        }
+        if (fig) primaries.push(fig);
+        if (note) subtitles.push(note);
+      } else {
+        if (s) primaries.push(s);
+      }
+    }
+
+    if (primaries.length > 0) {
+      return {
+        primary: primaries.join(' / '),
+        subtitle: subtitles.length > 0 ? `(${subtitles.join(' / ')})` : '',
+        isSlashSeparated: primaries.length > 1,
+        primaries,
+        subtitles
+      };
+    }
+  }
+
+  // Case 3: Standard single value via formatMetricValue
+  const single = formatMetricValue(trimmed);
+  return {
+    primary: single.primary,
+    subtitle: single.subtitle,
+    isSlashSeparated: false,
+    primaries: [single.primary],
+    subtitles: single.subtitle ? [single.subtitle] : []
+  };
+});
 
 const rateBreakdown = computed(() => {
-  const details = service.value?.subsidyDetails;
+  const details = rawSubsidyDetails.value;
   if (!details || typeof details !== 'string' || !details.trim()) {
     return null;
   }
-  const text = details.trim();
+  let text = details.trim();
+
+  // If details is only a footnote (starts with * or contains allocation disclaimer with no subsidy percentage):
+  if (text.startsWith('*') || (/rate could be varied|allocation/i.test(text) && !/\d+(?:\.\d+)?%/.test(text))) {
+    return null;
+  }
+
+  // Strip any footnote part if combined with subsidy
+  if (text.includes('\n')) {
+    text = text.split(/\r?\n/)[0].trim();
+  }
+  if (text.includes('*')) {
+    text = text.split(/\s+(?=\*)/)[0].trim();
+  }
+  if (!text) return null;
 
   // 1. Explicit Customer and Govt split: e.g. "Customer: 8%, Govt: 4%"
   const custMatch = text.match(/Customer(?:\s*Rate)?[:\s]+(\d+(?:\.\d+)?%?)/i);
@@ -511,7 +799,7 @@ const rateBreakdown = computed(() => {
   const percentSubsidyMatch = text.match(/(\d+(?:\.\d+)?%)\s*(?:Govt\.?|Government)?\s*Subsidy/i);
   if (percentSubsidyMatch) {
     const sVal = percentSubsidyMatch[1];
-    const baseRate = service.value?.interestRate || '';
+    const baseRate = cleanInterestRate.value || '';
     const baseMatch = baseRate.match(/(\d+(?:\.\d+)?%)/);
     if (baseMatch) {
       return {
@@ -520,6 +808,11 @@ const rateBreakdown = computed(() => {
         subsidy: sVal
       };
     }
+  }
+
+  // If remaining text looks like a footnote/disclaimer, don't show gift badge
+  if (/^[*•-]/i.test(text) || /rate could be varied|allocation/i.test(text)) {
+    return null;
   }
 
   // 3. Fallback: single compact badge
@@ -566,6 +859,112 @@ const serviceCoreFacilitiesText = computed(() => {
     return 'Drying, Storage & Testing';
   }
   return 'Grain Preservation & Storage';
+});
+
+// Dynamic summary helpers for SERVICE top 4 highlight metric cards from database
+const parsedCustomMetrics = computed(() => {
+  const raw = service.value?.customMetrics || service.value?.custom_metrics;
+  if (!raw) return [];
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+  }
+  return list.map(m => ({
+    label: m.label || 'Facility Highlight',
+    value: m.value || '',
+    subtext: m.subtext || '',
+    icon: m.icon || 'fas fa-info-circle'
+  })).filter(m => m.value || m.label);
+});
+
+// Dynamic Custom Sections from database
+const parsedCustomSections = computed(() => {
+  const raw = service.value?.customSections || service.value?.custom_sections;
+  if (!raw) return [];
+  let list = [];
+  if (Array.isArray(raw)) {
+    list = raw;
+  } else if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) list = parsed;
+      } catch (e) {}
+    }
+  }
+  return list.map(s => ({
+    title: s.title || '',
+    type: s.type || 'bullets',
+    items: Array.isArray(s.items) ? s.items : parseSmartPointsList(s.items || s.content),
+    content: s.content || ''
+  })).filter(s => s.title && ((s.type === 'bullets' && s.items.length > 0) || (s.type !== 'bullets' && s.content)));
+});
+
+// Primary and subtext display helpers for LOAN top 4 summary metric cards
+const displayMaxLoanAmount = computed(() => {
+  const sub = service.value?.maxLoanSubtext || service.value?.max_loan_subtext;
+  const rawAmount = service.value?.maxAmount || service.value?.maxLoan || service.value?.max_loan_amount || '';
+  const parsed = formatMetricValue(rawAmount);
+  return {
+    primary: parsed.primary || 'N/A',
+    subtext: (sub && sub.trim()) ? sub.trim() : (parsed.subtitle || '')
+  };
+});
+
+const displayInterestRate = computed(() => {
+  const sub = service.value?.interestSubtext || service.value?.interest_subtext;
+  const parsed = parsedInterestRate.value;
+  return {
+    primary: parsed.primary || 'N/A',
+    subtext: (sub && sub.trim()) ? sub.trim() : (parsed.subtitle || '')
+  };
+});
+
+const displaySubsidyBadge = computed(() => {
+  const badge = service.value?.subsidyBadge || service.value?.subsidy_badge;
+  if (badge && badge.trim()) return badge.trim();
+  const rb = rateBreakdown.value;
+  if (!rb) return null;
+  if (rb.type === 'split') {
+    return `Govt. Subsidy: ${rb.subsidy}`;
+  }
+  return rb.text;
+});
+
+const displayRateFootnote = computed(() => {
+  const fn = service.value?.rateFootnote || service.value?.rate_footnote;
+  if (fn && fn.trim()) return fn.trim();
+  return rateFootnote.value || '';
+});
+
+const displayRepayment = computed(() => {
+  const sub = service.value?.repaymentSubtext || service.value?.repayment_subtext;
+  const parsed = parsedRepayment.value;
+  return {
+    primary: parsed.primary,
+    subtext: (sub && sub.trim()) ? sub.trim() : (parsed.subtitle || ''),
+    isSlashSeparated: parsed.isSlashSeparated,
+    primaries: parsed.primaries
+  };
+});
+
+const displayGracePeriod = computed(() => {
+  const sub = service.value?.graceSubtext || service.value?.grace_subtext;
+  const raw = service.value?.gracePeriod || service.value?.grace_period || '';
+  const parsed = formatMetricValue(raw);
+  return {
+    primary: hasGracePeriod.value ? parsed.primary : 'No Grace Period',
+    subtext: hasGracePeriod.value ? ((sub && sub.trim()) ? sub.trim() : (parsed.subtitle || '')) : ''
+  };
 });
 
 // Parsing helpers
@@ -640,7 +1039,7 @@ const parseSmartPointsList = (rawVal) => {
 const parsedLocations = computed(() => parseArrayOrDelimited(service.value?.locations));
 
 const structuredLocationRows = computed(() => {
-  const raw = service.value?.center_locations_table || service.value?.centerLocationsTable;
+  const raw = service.value?.locationsTable || service.value?.locations_table || service.value?.center_locations_table || service.value?.centerLocationsTable;
   if (!raw) return [];
   let list = [];
   if (Array.isArray(raw)) {
@@ -652,7 +1051,7 @@ const structuredLocationRows = computed(() => {
         const parsed = JSON.parse(trimmed);
         if (Array.isArray(parsed)) list = parsed;
       } catch (e) {
-        console.warn('Failed to parse center_locations_table JSON:', e);
+        console.warn('Failed to parse locationsTable JSON:', e);
       }
     }
   }
@@ -668,9 +1067,9 @@ const structuredLocationRows = computed(() => {
     }
     return {
       district: item.district || item.District || '',
-      warehouseName: item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item.name || '',
+      warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item.name || '',
       address: item.address || item.Address || '',
-      storageCapacity: item.storageCapacity || item.storage_capacity || item['Storage Capacity (MT)'] || item.capacity || item.capacityMt || '',
+      storageCapacity: item.capacity || item.capacityMt || item.storageCapacity || item.storage_capacity || item['Storage Capacity (MT)'] || '',
       contactNumber: item.contactNumber || item.contact_number || item['Contact Number'] || item.phone || item.contact || ''
     };
   }).filter(r => r.warehouseName || r.district || r.address || r.storageCapacity || r.contactNumber);
@@ -824,8 +1223,21 @@ onMounted(() => {
   justify-content: flex-start;
   min-width: 0 !important;
   flex: 1 1 0%;
+  align-self: stretch;
   overflow-wrap: break-word;
   word-break: normal;
+}
+
+.metric-footnote {
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #64748b;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .metric-value-wrap {
@@ -1297,18 +1709,29 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  align-items: center;
 }
 
 .bank-pill {
   background: #e6f7f9;
   color: #007c91;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 50px;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
   border: 1px solid #bcecf1;
   display: inline-flex;
   align-items: center;
+  white-space: nowrap !important;
+  max-width: 100%;
+  box-shadow: 0 1px 2px rgba(0, 124, 145, 0.04);
+}
+
+@media (min-width: 640px) {
+  .bank-pill {
+    padding: 7px 16px;
+    font-size: 0.925rem;
+  }
 }
 
 /* Contact Callout */
