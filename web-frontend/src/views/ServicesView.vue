@@ -127,14 +127,14 @@
           >
             <div class="card-glass group flex flex-col justify-between h-full p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:-translate-y-1.5 hover:shadow-xl hover:border-teal-400/60 transition-all duration-300 relative">
               <!-- Non-Loan Facility OTHER Pill Badge (Clean - no Active badge on regular active cards) -->
-              <div v-if="isOtherFacility(service)" class="other-badge-wrapper">
+              <div v-if="hasOtherBadge(service)" class="other-badge-wrapper">
                 <span class="badge-other">
                   OTHER
                 </span>
               </div>
 
               <!-- 1. Top circular teal icon -->
-              <div class="service-icon-box w-14 h-14 mx-auto" :class="{ 'mt-2': !isOtherFacility(service) }">
+              <div class="service-icon-box w-14 h-14 mx-auto" :class="{ 'mt-2': !hasOtherBadge(service) }">
                 <i :class="service.icon || (isOtherFacility(service) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')"></i>
               </div>
 
@@ -186,7 +186,7 @@
                   <span class="badge-coming-soon">
                     COMING SOON
                   </span>
-                  <span v-if="isOtherFacility(service)" class="badge-other">
+                  <span v-if="hasOtherBadge(service)" class="badge-other">
                     OTHER
                   </span>
                 </div>
@@ -261,6 +261,12 @@ const isOtherFacility = (service) => {
   if (service.category === 'Preservation & Storage') return true;
   if (typeof service.title === 'string' && service.title.toLowerCase().includes('preservation & silo')) return true;
   return false;
+};
+
+const hasOtherBadge = (service) => {
+  if (!service) return false;
+  return service.showOtherBadge === true || service.showOtherBadge === 'true' || service.showOtherBadge === 1 ||
+         service.show_other_badge === true || service.show_other_badge === 'true' || service.show_other_badge === 1;
 };
 
 const categoryOptions = computed(() => {

@@ -47,6 +47,9 @@ public class Scheme {
     @Column(length = 20)
     private String status = "ACTIVE"; // "ACTIVE", "COMING_SOON", "DRAFT"
 
+    @Column(name = "show_other_badge")
+    private Boolean showOtherBadge = false;
+
     private String repaymentPeriod;
 
     private String gracePeriod; // Optional/nullable
@@ -248,6 +251,22 @@ public class Scheme {
         } else {
             this.status = this.active ? "ACTIVE" : "DRAFT";
         }
+    }
+
+    @JsonProperty("showOtherBadge")
+    public Boolean getShowOtherBadge() {
+        return Boolean.TRUE.equals(this.showOtherBadge);
+    }
+
+    @JsonProperty("showOtherBadge")
+    @JsonAlias({"show_other_badge", "showOtherBadge"})
+    public void setShowOtherBadge(Boolean showOtherBadge) {
+        this.showOtherBadge = Boolean.TRUE.equals(showOtherBadge);
+    }
+
+    @JsonIgnore
+    public boolean isShowOtherBadge() {
+        return Boolean.TRUE.equals(this.showOtherBadge);
     }
 
     public String getRepaymentPeriod() {

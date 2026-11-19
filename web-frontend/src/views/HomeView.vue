@@ -81,8 +81,8 @@
             :key="service.id"
           >
             <div class="card-glass relative">
-              <!-- Top Badges for Coming Soon or Non-Loan Facilities (No Active tag on regular active cards) -->
-              <div v-if="isComingSoon(service) || isOtherFacility(service)" class="card-top-badges">
+              <!-- Top Badges for Coming Soon or Schemes with showOtherBadge (No Active tag on regular active cards) -->
+              <div v-if="isComingSoon(service) || hasOtherBadge(service)" class="card-top-badges">
                 <span
                   v-if="isComingSoon(service)"
                   class="badge-coming-soon"
@@ -90,7 +90,7 @@
                   COMING SOON
                 </span>
                 <span
-                  v-if="isOtherFacility(service)"
+                  v-if="hasOtherBadge(service)"
                   class="badge-other"
                 >
                   OTHER
@@ -332,6 +332,12 @@ const isOtherFacility = (service) => {
   return false;
 };
 
+const hasOtherBadge = (service) => {
+  if (!service) return false;
+  return service.showOtherBadge === true || service.showOtherBadge === 'true' || service.showOtherBadge === 1 ||
+         service.show_other_badge === true || service.show_other_badge === 'true' || service.show_other_badge === 1;
+};
+
 const slugMap = {
   "Re-MSME Plus Loan Scheme": "/services/re-msme-plus",
   "NPA Borrower Relief Scheme": "/services/npl-relief",
@@ -409,9 +415,27 @@ const impactMetrics = ref([
   },
   {
     id: "subsidies",
-    label: "Number of Interest Subsidies",
+    label: "Number of Interest Subsidies Beneficiaries",
     icon: "fas fa-percentage",
     target: 18250,
+    current: 1,
+    prefix: "",
+    suffix: "+"
+  },
+  {
+    id: "funds",
+    label: "Total Funds Disbursed",
+    icon: "fas fa-coins",
+    target: 90,
+    current: 1,
+    prefix: "Rs. ",
+    suffix: "Bn+"
+  },
+  {
+    id: "schemes",
+    label: "Active Loan Schemes",
+    icon: "fas fa-file-invoice-dollar",
+    target: 8,
     current: 1,
     prefix: "",
     suffix: "+"
@@ -424,24 +448,6 @@ const impactMetrics = ref([
     current: 1,
     prefix: "",
     suffix: "+"
-  },
-  {
-    id: "schemes",
-    label: "Active Loan Schemes",
-    icon: "fas fa-file-invoice-dollar",
-    target: 8,
-    current: 1,
-    prefix: "",
-    suffix: "+"
-  },
-  {
-    id: "funds",
-    label: "Total Funds Disbursed",
-    icon: "fas fa-coins",
-    target: 4850,
-    current: 1,
-    prefix: "Rs. ",
-    suffix: "M+"
   }
 ]);
 
@@ -480,10 +486,11 @@ const startCountUpAnimation = () => {
 };
 
 const parseMetricString = (val, defaultTarget, defaultPrefix, defaultSuffix) => {
-  if (!val || typeof val !== 'string') {
+  if (val === undefined || val === null || val === '') {
     return { target: defaultTarget, prefix: defaultPrefix, suffix: defaultSuffix };
   }
-  const trimmed = val.trim();
+  const valStr = typeof val === 'string' ? val : String(val);
+  const trimmed = valStr.trim();
   const numMatch = trimmed.match(/\d[\d,.]*/);
   if (!numMatch) {
     return { target: defaultTarget, prefix: defaultPrefix, suffix: defaultSuffix };
@@ -531,9 +538,11 @@ const fetchHomeStats = async () => {
           if (hasAnimatedStats) item.current = p.target;
         }
       }
-      if (data.partnerBanks) {
-        const p = parseMetricString(data.partnerBanks, 14, "", "+");
-        const item = impactMetrics.value.find(s => s.id === 'banks');
+      const fundsVal = data.totalFundsDisbursed || data.totalFundDisbursed;
+      if (fundsVal) {
+        const effectiveFunds = (fundsVal.includes('4,850') || fundsVal.includes('4850')) ? 'Rs. 90Bn+' : fundsVal;
+        const p = parseMetricString(effectiveFunds, 90, "Rs. ", "Bn+");
+        const item = impactMetrics.value.find(s => s.id === 'funds');
         if (item) {
           item.target = p.target;
           item.prefix = p.prefix;
@@ -551,10 +560,9 @@ const fetchHomeStats = async () => {
           if (hasAnimatedStats) item.current = p.target;
         }
       }
-      const fundsVal = data.totalFundsDisbursed || data.totalFundDisbursed;
-      if (fundsVal) {
-        const p = parseMetricString(fundsVal, 4850, "Rs. ", "M+");
-        const item = impactMetrics.value.find(s => s.id === 'funds');
+      if (data.partnerBanks) {
+        const p = parseMetricString(data.partnerBanks, 14, "", "+");
+        const item = impactMetrics.value.find(s => s.id === 'banks');
         if (item) {
           item.target = p.target;
           item.prefix = p.prefix;

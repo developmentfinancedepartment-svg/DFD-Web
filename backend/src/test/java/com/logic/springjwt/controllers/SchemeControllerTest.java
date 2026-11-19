@@ -119,6 +119,7 @@ class SchemeControllerTest {
         updatedDetails.setCenterLocationsTableRaw("[{\"district\":\"Polonnaruwa\",\"warehouseName\":\"Gal-Oya Central Silo\"}]");
         updatedDetails.setOperationalArrangements("Cost-recovery fees apply for commercial drying.");
         updatedDetails.setBeneficiaries("Farmers cultivating Paddy, Maize, Soybean, Sesame, Black Gram, Pepper, Peanuts, and other grains\nSmall and medium millers");
+        updatedDetails.setShowOtherBadge(true);
 
         when(schemeRepository.findById(1L)).thenReturn(Optional.of(sampleScheme));
         when(schemeRepository.save(any(Scheme.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -132,6 +133,7 @@ class SchemeControllerTest {
         assertEquals("Cost-recovery fees apply for commercial drying.", response.getBody().getOperationalArrangements());
         assertEquals("[{\"district\":\"Polonnaruwa\",\"warehouseName\":\"Gal-Oya Central Silo\"}]", response.getBody().getCenterLocationsTableRaw());
         assertEquals("Farmers cultivating Paddy, Maize, Soybean, Sesame, Black Gram, Pepper, Peanuts, and other grains\nSmall and medium millers", response.getBody().getBeneficiaries());
+        assertTrue(response.getBody().getShowOtherBadge());
         assertFalse(response.getBody().isActive());
     }
 

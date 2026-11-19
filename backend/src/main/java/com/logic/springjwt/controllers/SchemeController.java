@@ -67,6 +67,9 @@ public class SchemeController {
         if (scheme.getStatus() == null || scheme.getStatus().trim().isEmpty()) {
             scheme.setStatus(scheme.isActive() ? "ACTIVE" : "DRAFT");
         }
+        if (scheme.getShowOtherBadge() == null) {
+            scheme.setShowOtherBadge(false);
+        }
         Scheme savedScheme = schemeRepository.save(scheme);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedScheme);
     }
@@ -106,6 +109,7 @@ public class SchemeController {
                     existingScheme.setContactInfo(schemeDetails.getContactInfo());
                     existingScheme.setOperationalGuidelineUrl(schemeDetails.getOperationalGuidelineUrl());
                     existingScheme.setOperationalGuidelineFileName(schemeDetails.getOperationalGuidelineFileName());
+                    existingScheme.setShowOtherBadge(schemeDetails.getShowOtherBadge());
 
                     Scheme updatedScheme = schemeRepository.save(existingScheme);
                     return ResponseEntity.ok(updatedScheme);

@@ -160,18 +160,25 @@
                       <div class="font-bold text-slate-800 text-sm truncate" :title="scheme.title">
                         {{ scheme.title }}
                       </div>
-                      <div class="mt-0.5">
+                      <div class="mt-0.5 flex items-center gap-1.5 flex-wrap">
                         <span
                           v-if="isOtherFacility(scheme)"
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/80 uppercase tracking-wider whitespace-nowrap"
                         >
-                          OTHER
+                          OTHER FACILITY
                         </span>
                         <span
                           v-else
                           class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200/80 uppercase tracking-wider whitespace-nowrap"
                         >
                           LOAN
+                        </span>
+                        <span
+                          v-if="scheme.showOtherBadge || scheme.show_other_badge"
+                          class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500 text-white uppercase tracking-wider whitespace-nowrap shadow-2xs"
+                          title="OTHER badge enabled on public portal"
+                        >
+                          OTHER BADGE
                         </span>
                       </div>
                     </div>
@@ -1342,6 +1349,49 @@
             </div>
           </div>
 
+          <!-- 8. PUBLIC CARD BADGES (OTHER BADGE TOGGLE) -->
+          <div class="space-y-2 pt-1">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Public Card Badges
+              </label>
+              <span class="text-[11px] text-slate-400 font-medium">Controls highlight badges displayed on the public card</span>
+            </div>
+
+            <label
+              :class="[
+                'relative flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all select-none',
+                form.showOtherBadge
+                  ? 'bg-amber-50/70 border-amber-500 ring-2 ring-amber-500/20 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+              ]"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider shadow-2xs">
+                  OTHER
+                </span>
+                <div>
+                  <div class="text-xs font-bold" :class="form.showOtherBadge ? 'text-amber-800' : 'text-slate-800'">
+                    Show "OTHER" Badge on Card
+                  </div>
+                  <div class="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                    Displays the prominent amber "OTHER" badge on top of this scheme card on public pages
+                  </div>
+                </div>
+              </div>
+
+              <!-- Toggle Switch -->
+              <div class="relative inline-flex items-center shrink-0 ml-4">
+                <input
+                  type="checkbox"
+                  v-model="form.showOtherBadge"
+                  class="sr-only peer"
+                />
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </div>
+            </label>
+          </div>
+
           <!-- ACTIONS -->
           <div class="flex gap-3 pt-4 border-t border-slate-100">
             <button
@@ -1498,6 +1548,7 @@ const defaultForm = () => ({
   participatingBanks: '',
   description: '',
   icon: 'fas fa-hand-holding-usd',
+  showOtherBadge: false,
   status: 'ACTIVE',
   active: true
 });
@@ -1958,6 +2009,7 @@ const openEditModal = (scheme) => {
     participatingBanks: isOtherFacility(scheme) ? '' : (scheme.participatingBanks || ''),
     description: scheme.description || '',
     icon: scheme.icon || (isOtherFacility(scheme) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd'),
+    showOtherBadge: Boolean(scheme.showOtherBadge || scheme.show_other_badge),
     status: getSchemeStatus(scheme),
     active: getSchemeStatus(scheme) !== 'DRAFT'
   };
@@ -1991,6 +2043,7 @@ const saveScheme = async () => {
     }
 
     const payload = { ...form.value };
+    payload.showOtherBadge = Boolean(form.value.showOtherBadge);
 
     // Handle Operational Guideline PDF file upload if a new file was chosen
     if (selectedGuidelineFile.value) {
