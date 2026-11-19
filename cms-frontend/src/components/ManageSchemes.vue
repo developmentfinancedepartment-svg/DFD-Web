@@ -219,8 +219,8 @@
                     <div class="font-bold text-[#007c91] text-sm whitespace-nowrap">
                       {{ scheme.interestRate || '—' }}
                     </div>
-                    <div v-if="scheme.subsidyDetails" class="text-[10px] text-teal-600 font-medium whitespace-nowrap truncate max-w-[160px]" :title="scheme.subsidyDetails">
-                      + {{ scheme.subsidyDetails }}
+                    <div v-if="(scheme.subsidyBadge && scheme.subsidyBadge.trim()) || (scheme.subsidy_badge && scheme.subsidy_badge.trim()) || (!('subsidyBadge' in scheme) && !('subsidy_badge' in scheme) && scheme.subsidyDetails && scheme.subsidyDetails.trim())" class="text-[10px] text-teal-600 font-medium whitespace-nowrap truncate max-w-[160px]" :title="scheme.subsidyBadge || scheme.subsidy_badge || scheme.subsidyDetails">
+                      + {{ scheme.subsidyBadge || scheme.subsidy_badge || scheme.subsidyDetails }}
                     </div>
                   </template>
                 </td>
@@ -658,27 +658,37 @@
                 </div>
               </div>
 
-              <!-- Metric 4: Grace Period -->
+              <!-- Metric 4: Grace Period / Custom 4th Metric -->
               <div class="p-4 rounded-xl bg-white border border-cyan-100/80 shadow-xs space-y-3">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
                   <span class="w-5 h-5 rounded-full bg-cyan-100 text-[#008795] flex items-center justify-center text-[10px]">4</span>
-                  <span>Grace Period (Summary Card 4)</span>
+                  <span>{{ form.gracePeriodLabel || 'Grace Period' }} (Summary Card 4)</span>
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Grace Period Term</label>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Card 4 Heading / Label (Optional)</label>
+                  <input
+                    v-model="form.gracePeriodLabel"
+                    type="text"
+                    placeholder="e.g. Grace Period or Maximum Daily Milling Capacity (defaults to 'GRACE PERIOD')"
+                    class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
+                  />
+                  <p class="text-[11px] text-slate-400 mt-1">Customizes Card 4 header on public portal (defaults to "GRACE PERIOD" if blank)</p>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">{{ form.gracePeriodLabel ? form.gracePeriodLabel + ' Value' : 'Grace Period Term / Value' }}</label>
                   <input
                     v-model="form.gracePeriod"
                     type="text"
-                    placeholder="e.g. Up to 6 Months (leave blank if none)"
+                    placeholder="e.g. Up to 6 Months or 25 MT (leave blank if none)"
                     class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
                   />
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Grace Period Subtext (Optional)</label>
+                  <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Subtext / Sub-label (Optional)</label>
                   <input
                     v-model="form.graceSubtext"
                     type="text"
-                    placeholder="e.g. Applicable for capital investments"
+                    placeholder="e.g. Applicable for capital investments or (Maximum)"
                     class="w-full px-3.5 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#008795] focus:border-[#008795] outline-none transition text-slate-800"
                   />
                 </div>
@@ -2140,6 +2150,7 @@ const defaultForm = () => ({
   repaymentSubtext: '',
   gracePeriod: '',
   graceSubtext: '',
+  gracePeriodLabel: '',
   beneficiaries: '',
   requirements: '',
   locations: '',
@@ -2621,14 +2632,23 @@ const openEditModal = (scheme) => {
     maxLoanSubtext: scheme.maxLoanSubtext || scheme.max_loan_subtext || '',
     interestRate: scheme.interestRate || '',
     interestSubtext: scheme.interestSubtext || scheme.interest_subtext || '',
-    subsidyDetails: scheme.subsidyDetails || '',
-    subsidyBadge: scheme.subsidyBadge || scheme.subsidy_badge || '',
+    subsidyDetails: (scheme.subsidyBadge !== undefined && scheme.subsidyBadge !== null)
+      ? scheme.subsidyBadge
+      : (scheme.subsidy_badge !== undefined && scheme.subsidy_badge !== null
+        ? scheme.subsidy_badge
+        : (scheme.subsidyDetails || scheme.subsidy_details || '')),
+    subsidyBadge: (scheme.subsidyBadge !== undefined && scheme.subsidyBadge !== null)
+      ? scheme.subsidyBadge
+      : (scheme.subsidy_badge !== undefined && scheme.subsidy_badge !== null
+        ? scheme.subsidy_badge
+        : (scheme.subsidyDetails || scheme.subsidy_details || '')),
     rateFootnote: scheme.rateFootnote || scheme.rate_footnote || '',
     natureOfLoan: scheme.natureOfLoan || '',
     repaymentPeriod: scheme.repaymentPeriod || '',
     repaymentSubtext: scheme.repaymentSubtext || scheme.repayment_subtext || '',
     gracePeriod: scheme.gracePeriod || '',
     graceSubtext: scheme.graceSubtext || scheme.grace_subtext || '',
+    gracePeriodLabel: scheme.gracePeriodLabel || scheme.grace_period_label || '',
     beneficiaries: rawBeneficiaries,
     requirements: rawRequirements,
     locations: formatArrayField(scheme.locations),
@@ -2697,14 +2717,18 @@ const saveScheme = async () => {
     payload.maxLoanSubtext = cleanCitations(payload.maxLoanSubtext);
     payload.interestRate = cleanCitations(payload.interestRate);
     payload.interestSubtext = cleanCitations(payload.interestSubtext);
-    payload.subsidyDetails = cleanCitations(payload.subsidyDetails);
-    payload.subsidyBadge = cleanCitations(payload.subsidyBadge);
+    const cleanedSubsidyBadge = cleanCitations(payload.subsidyBadge || '').trim();
+    payload.subsidyBadge = cleanedSubsidyBadge;
+    payload.subsidy_badge = cleanedSubsidyBadge;
+    payload.subsidyDetails = cleanedSubsidyBadge;
+    payload.subsidy_details = cleanedSubsidyBadge;
     payload.rateFootnote = cleanCitations(payload.rateFootnote);
     payload.natureOfLoan = cleanCitations(payload.natureOfLoan);
     payload.repaymentPeriod = cleanCitations(payload.repaymentPeriod);
     payload.repaymentSubtext = cleanCitations(payload.repaymentSubtext);
     payload.gracePeriod = cleanCitations(payload.gracePeriod);
     payload.graceSubtext = cleanCitations(payload.graceSubtext);
+    payload.gracePeriodLabel = cleanCitations(payload.gracePeriodLabel);
     payload.description = cleanCitations(payload.description);
     payload.purpose = cleanCitations(payload.purpose);
     payload.beneficiaries = cleanCitations(payload.beneficiaries);

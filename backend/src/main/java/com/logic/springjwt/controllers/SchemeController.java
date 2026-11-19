@@ -82,6 +82,7 @@ public class SchemeController {
         scheme.setRepaymentSubtext(stripCitations(scheme.getRepaymentSubtext()));
         scheme.setGracePeriod(stripCitations(scheme.getGracePeriod()));
         scheme.setGraceSubtext(stripCitations(scheme.getGraceSubtext()));
+        scheme.setGracePeriodLabel(stripCitations(scheme.getGracePeriodLabel()));
         scheme.setNatureOfLoan(stripCitations(scheme.getNatureOfLoan()));
         scheme.setSubsidyDetails(stripCitations(scheme.getSubsidyDetails()));
         scheme.setImplementationArrangements(stripCitations(scheme.getImplementationArrangements()));
@@ -104,6 +105,12 @@ public class SchemeController {
         if (scheme.getShowOtherBadge() == null) {
             scheme.setShowOtherBadge(false);
         }
+        // Ensure subsidyBadge and legacy subsidyDetails are synchronized
+        if (scheme.getSubsidyBadge() != null) {
+            scheme.setSubsidyDetails(scheme.getSubsidyBadge());
+        } else if (scheme.getSubsidyDetails() != null) {
+            scheme.setSubsidyBadge(scheme.getSubsidyDetails());
+        }
         sanitizeScheme(scheme);
         Scheme savedScheme = schemeRepository.save(scheme);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedScheme);
@@ -121,10 +128,20 @@ public class SchemeController {
                     existingScheme.setMaxLoanSubtext(schemeDetails.getMaxLoanSubtext());
                     existingScheme.setInterestRate(schemeDetails.getInterestRate());
                     existingScheme.setInterestSubtext(schemeDetails.getInterestSubtext());
-                    existingScheme.setSubsidyBadge(schemeDetails.getSubsidyBadge());
+                    // Keep subsidyBadge and legacy subsidyDetails unified and synchronized
+                    String unifiedBadge = schemeDetails.getSubsidyBadge();
+                    if (unifiedBadge != null) {
+                        existingScheme.setSubsidyBadge(unifiedBadge);
+                        existingScheme.setSubsidyDetails(unifiedBadge);
+                    } else if (schemeDetails.getSubsidyDetails() != null) {
+                        existingScheme.setSubsidyBadge(schemeDetails.getSubsidyDetails());
+                        existingScheme.setSubsidyDetails(schemeDetails.getSubsidyDetails());
+                    } else {
+                        existingScheme.setSubsidyBadge(null);
+                        existingScheme.setSubsidyDetails(null);
+                    }
                     existingScheme.setRateFootnote(schemeDetails.getRateFootnote());
                     existingScheme.setNatureOfLoan(schemeDetails.getNatureOfLoan());
-                    existingScheme.setSubsidyDetails(schemeDetails.getSubsidyDetails());
                     existingScheme.setDescription(schemeDetails.getDescription());
                     existingScheme.setIcon(schemeDetails.getIcon());
                     if (schemeDetails.getStatus() != null && !schemeDetails.getStatus().trim().isEmpty()) {
@@ -136,6 +153,7 @@ public class SchemeController {
                     existingScheme.setRepaymentSubtext(schemeDetails.getRepaymentSubtext());
                     existingScheme.setGracePeriod(schemeDetails.getGracePeriod());
                     existingScheme.setGraceSubtext(schemeDetails.getGraceSubtext());
+                    existingScheme.setGracePeriodLabel(schemeDetails.getGracePeriodLabel());
                     existingScheme.setPurpose(schemeDetails.getPurpose());
                     existingScheme.setEligibility(schemeDetails.getEligibility());
                     existingScheme.setParticipatingBanks(schemeDetails.getParticipatingBanks());

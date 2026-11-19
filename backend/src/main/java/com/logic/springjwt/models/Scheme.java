@@ -114,6 +114,9 @@ public class Scheme {
     private String graceSubtext;
 
     @Column(columnDefinition = "TEXT")
+    private String gracePeriodLabel; // Optional custom label for Card 4 (defaults to "GRACE PERIOD")
+
+    @Column(columnDefinition = "TEXT")
     private String customMetrics; // JSON array of { label, value, subtext, icon }
 
     @Column(columnDefinition = "TEXT")
@@ -231,6 +234,8 @@ public class Scheme {
         return subsidyDetails;
     }
 
+    @JsonProperty("subsidyDetails")
+    @JsonAlias({"subsidyDetails", "subsidy_details"})
     public void setSubsidyDetails(String subsidyDetails) {
         this.subsidyDetails = subsidyDetails;
     }
@@ -700,6 +705,16 @@ public class Scheme {
     @JsonAlias({"graceSubtext", "grace_subtext"})
     public void setGraceSubtext(String graceSubtext) {
         this.graceSubtext = graceSubtext;
+    }
+
+    public String getGracePeriodLabel() {
+        return gracePeriodLabel;
+    }
+
+    @JsonProperty("gracePeriodLabel")
+    @JsonAlias({"gracePeriodLabel", "grace_period_label"})
+    public void setGracePeriodLabel(String gracePeriodLabel) {
+        this.gracePeriodLabel = gracePeriodLabel;
     }
 
     // --- Custom Metrics for Institutional Services (OTHER / SERVICE) ---

@@ -154,11 +154,11 @@
               </div>
             </div>
 
-            <!-- Box 4: Grace Period (Always Grace Period) -->
+            <!-- Box 4: Grace Period / Custom 4th Metric -->
             <div class="metric-card">
-              <div class="metric-icon"><i class="fas fa-hourglass-half"></i></div>
+              <div class="metric-icon"><i :class="fourthMetricIcon"></i></div>
               <div class="metric-info">
-                <span class="metric-label text-xs">Grace Period</span>
+                <span class="metric-label text-xs uppercase">{{ gracePeriodLabel }}</span>
                 <div class="metric-value-wrap">
                   <span
                     class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-words leading-snug"
@@ -167,7 +167,7 @@
                     {{ displayGracePeriod.primary }}
                   </span>
                   <span
-                    v-if="hasGracePeriod && displayGracePeriod.subtext"
+                    v-if="displayGracePeriod.subtext"
                     class="metric-subtitle text-xs font-medium text-slate-500 mt-1 leading-relaxed break-words"
                   >
                     {{ displayGracePeriod.subtext }}
@@ -342,7 +342,7 @@
               </h3>
 
               <!-- Bullets Format -->
-              <div v-if="sec.type === 'bullets'" class="checklist-container">
+              <div v-if="sec.type === 'bullets' && sec.items && sec.items.length > 0" class="checklist-container">
                 <div v-for="(item, idx) in sec.items" :key="idx" class="checklist-item">
                   <div class="check-icon-circle"><i class="fas fa-check"></i></div>
                   <span class="checklist-text whitespace-normal break-words text-base leading-relaxed">{{ item }}</span>
@@ -350,7 +350,7 @@
               </div>
 
               <!-- Callout Format -->
-              <div v-else-if="sec.type === 'callout'" class="op-arrangements-card">
+              <div v-else-if="sec.type === 'callout' && hasContent(sec.content)" class="op-arrangements-card">
                 <div class="op-arrangements-icon">
                   <i class="fas fa-lightbulb text-teal text-xl"></i>
                 </div>
@@ -362,7 +362,7 @@
               </div>
 
               <!-- Text Format -->
-              <p v-else class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
+              <p v-else-if="hasContent(sec.content)" class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
                 {{ sec.content }}
               </p>
             </div>
@@ -384,13 +384,13 @@
           </div>
 
           <!-- 11. Related Initiatives -->
-          <div class="detail-block" v-if="hasContent(service.otherInitiatives)">
+          <div class="detail-block" v-if="hasContent(service.otherInitiatives || service.relatedInitiatives || service.other_initiatives || service.related_initiatives)">
             <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-project-diagram me-2 text-teal"></i> Related Initiatives</h3>
-            <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">{{ service.otherInitiatives }}</p>
+            <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">{{ service.otherInitiatives || service.relatedInitiatives || service.other_initiatives || service.related_initiatives }}</p>
           </div>
 
           <!-- 12. Designated Contact Details & Inquiries -->
-          <div class="detail-block" v-if="hasContent(service.contactInfo)">
+          <div class="detail-block" v-if="hasContent(service.contactInfo || service.contact_info)">
             <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-headset me-2 text-teal"></i> Designated Contact Information &amp; Inquiries</h3>
             <div class="contact-box-callout">
               <i class="fas fa-info-circle text-teal text-xl shrink-0 mt-0.5"></i>
@@ -469,9 +469,10 @@ const hasContent = (val) => {
   if (!val) return false;
   if (typeof val === 'string') {
     const trimmed = val.trim();
-    return trimmed.length > 0 && trimmed.toLowerCase() !== 'n/a' && trimmed !== '-' && trimmed !== 'null';
+    return trimmed.length > 0 && trimmed.toLowerCase() !== 'n/a' && trimmed !== '-' && trimmed !== 'null' && trimmed !== 'undefined';
   }
   if (Array.isArray(val)) return val.length > 0;
+  if (typeof val === 'object') return Object.keys(val).length > 0;
   return true;
 };
 
@@ -901,12 +902,17 @@ const parsedCustomSections = computed(() => {
       } catch (e) {}
     }
   }
-  return list.map(s => ({
-    title: s.title || '',
-    type: s.type || 'bullets',
-    items: Array.isArray(s.items) ? s.items : parseSmartPointsList(s.items || s.content),
-    content: s.content || ''
-  })).filter(s => s.title && ((s.type === 'bullets' && s.items.length > 0) || (s.type !== 'bullets' && s.content)));
+  return list.map(s => {
+    const rawItems = Array.isArray(s.items) ? s.items : parseSmartPointsList(s.items || s.content);
+    const cleanedItems = (rawItems || []).map(i => typeof i === 'string' ? i.trim() : i).filter(Boolean);
+    const content = typeof s.content === 'string' ? s.content.trim() : (s.content || '');
+    return {
+      title: (s.title && typeof s.title === 'string') ? s.title.trim() : '',
+      type: s.type || 'bullets',
+      items: cleanedItems,
+      content: content
+    };
+  }).filter(s => s.title && ((s.type === 'bullets' && s.items.length > 0) || (s.type !== 'bullets' && hasContent(s.content))));
 });
 
 // Primary and subtext display helpers for LOAN top 4 summary metric cards
@@ -930,8 +936,18 @@ const displayInterestRate = computed(() => {
 });
 
 const displaySubsidyBadge = computed(() => {
-  const badge = service.value?.subsidyBadge || service.value?.subsidy_badge;
-  if (badge && badge.trim()) return badge.trim();
+  const rawBadge = service.value?.subsidyBadge ?? service.value?.subsidy_badge;
+
+  // If primary subsidy badge is defined (including empty string or null),
+  // strictly respect it and do not fall back to legacy subsidyDetails.
+  if (rawBadge !== undefined) {
+    if (typeof rawBadge === 'string' && rawBadge.trim()) {
+      return rawBadge.trim();
+    }
+    return null;
+  }
+
+  // Legacy fallback ONLY if subsidyBadge field is completely absent on the entity
   const rb = rateBreakdown.value;
   if (!rb) return null;
   if (rb.type === 'split') {
@@ -957,13 +973,44 @@ const displayRepayment = computed(() => {
   };
 });
 
+const gracePeriodLabel = computed(() => {
+  const lbl = service.value?.gracePeriodLabel || service.value?.grace_period_label;
+  return (lbl && lbl.trim()) ? lbl.trim() : 'GRACE PERIOD';
+});
+
+const isCustomGraceLabel = computed(() => {
+  const lbl = service.value?.gracePeriodLabel || service.value?.grace_period_label;
+  return Boolean(lbl && lbl.trim() && !/grace\s*period/i.test(lbl.trim()));
+});
+
+const fourthMetricIcon = computed(() => {
+  const lbl = (service.value?.gracePeriodLabel || service.value?.grace_period_label || '').toLowerCase();
+  if (!lbl || /grace\s*period/.test(lbl)) {
+    return 'fas fa-hourglass-half';
+  }
+  if (/milling|mill|capacity|production|output/.test(lbl)) {
+    return 'fas fa-industry';
+  }
+  if (/weight|ton|mt|volume|load/.test(lbl)) {
+    return 'fas fa-weight-hanging';
+  }
+  if (/speed|rate|limit|threshold|target/.test(lbl)) {
+    return 'fas fa-gauge-high';
+  }
+  if (/facility|center|warehouse|store/.test(lbl)) {
+    return 'fas fa-warehouse';
+  }
+  return 'fas fa-chart-pie';
+});
+
 const displayGracePeriod = computed(() => {
   const sub = service.value?.graceSubtext || service.value?.grace_subtext;
   const raw = service.value?.gracePeriod || service.value?.grace_period || '';
   const parsed = formatMetricValue(raw);
+  const fallback = isCustomGraceLabel.value ? 'N/A' : 'No Grace Period';
   return {
-    primary: hasGracePeriod.value ? parsed.primary : 'No Grace Period',
-    subtext: hasGracePeriod.value ? ((sub && sub.trim()) ? sub.trim() : (parsed.subtitle || '')) : ''
+    primary: hasGracePeriod.value ? parsed.primary : fallback,
+    subtext: (sub && sub.trim()) ? sub.trim() : (parsed.subtitle || '')
   };
 });
 
