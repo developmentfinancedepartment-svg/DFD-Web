@@ -99,7 +99,7 @@
               <div class="metric-info">
                 <span class="metric-label text-xs">Interest Rate</span>
                 <div class="metric-value-wrap">
-                  <div class="rate-display-row flex items-baseline flex-wrap gap-x-1.5 gap-y-0.5">
+                  <div class="rate-display-row flex items-center flex-wrap gap-x-1.5 gap-y-0.5">
                     <span class="metric-value text-lg sm:text-xl font-bold text-slate-900 break-normal">
                       {{ displayInterestRate.primary }}
                     </span>
@@ -118,9 +118,9 @@
                   </span>
                 </div>
                 <!-- Subtle Footnote / Disclaimer -->
-                <div v-if="displayRateFootnote" class="metric-footnote">
-                  <i class="fas fa-info-circle text-[10px] text-teal me-1 shrink-0 mt-0.5"></i>
-                  <span class="break-words font-medium">{{ displayRateFootnote }}</span>
+                <div v-if="displayRateFootnote" class="metric-footnote inline-flex items-center gap-1.5">
+                  <i class="fas fa-info-circle text-[10px] text-teal shrink-0 leading-none"></i>
+                  <span class="break-words font-medium text-slate-500">{{ displayRateFootnote }}</span>
                 </div>
               </div>
             </div>
@@ -184,7 +184,7 @@
           <div class="detail-block" v-if="hasContent(service.purpose || service.objective || service.description)">
             <h3 class="text-lg sm:text-xl font-bold">
               <i class="fas fa-bullseye me-2 text-teal"></i>
-              {{ isService ? 'Program Background & Objectives' : 'Scheme Purpose & Objectives' }}
+              {{ isService ? 'Program Background & Objectives' : 'Scheme Objectives' }}
             </h3>
             <div v-if="parsedPurposeList.length > 1" class="checklist-container">
               <div v-for="(item, idx) in parsedPurposeList" :key="idx" class="checklist-item">
@@ -204,8 +204,8 @@
               Nature of the Loan
             </h3>
             <div class="nature-pill-box">
-              <span class="nature-loan-badge whitespace-normal leading-relaxed text-base">
-                <i class="fas fa-briefcase text-teal me-2.5 mt-0.5 shrink-0"></i>
+              <span class="nature-loan-badge whitespace-normal leading-relaxed text-base inline-flex items-center gap-2">
+                <i class="fas fa-briefcase text-teal shrink-0 leading-none"></i>
                 <span class="break-words">{{ service.natureOfLoan }}</span>
               </span>
             </div>
@@ -252,16 +252,13 @@
               <i class="fas fa-warehouse me-2 text-teal"></i>
               Locations and Contact Details
             </h3>
-            <p class="section-subtext">
-              Official operational warehouses, storage capacities, and direct regional facility contact information.
-            </p>
             <div class="gov-table-responsive">
               <table class="gov-locations-table">
                 <thead>
                   <tr>
                     <th class="th-no">No.</th>
                     <th class="th-district">District</th>
-                    <th class="th-name">Warehouse Name</th>
+                    <th class="th-name">Location</th>
                     <th class="th-address">Address</th>
                     <th class="th-capacity">Storage Capacity (MT)</th>
                     <th class="th-contact">Contact Number</th>
@@ -312,25 +309,10 @@
             </div>
           </div>
 
-          <!-- 8. Implementation Arrangements -->
+          <!-- 8. Operational Management -->
           <div class="detail-block" v-if="hasContent(service.implementationArrangements)">
-            <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-sitemap me-2 text-teal"></i> Implementation Arrangements</h3>
+            <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-sitemap me-2 text-teal"></i> Operational Management</h3>
             <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">{{ service.implementationArrangements }}</p>
-          </div>
-
-          <!-- 9. Operational Costs & Revenue Arrangements (Clean Info Card) -->
-          <div class="detail-block" v-if="hasContent(service.operationalCostNote || service.operationalArrangements || service.operational_arrangements)">
-            <h3 class="text-lg sm:text-xl font-bold"><i class="fas fa-coins me-2 text-teal"></i> Operational Costs &amp; Revenue Arrangements</h3>
-            <div class="op-arrangements-card">
-              <div class="op-arrangements-icon">
-                <i class="fas fa-receipt text-teal text-xl"></i>
-              </div>
-              <div class="op-arrangements-body">
-                <p class="whitespace-normal break-words leading-relaxed text-slate-700 text-base">
-                  {{ service.operationalCostNote || service.operationalArrangements || service.operational_arrangements }}
-                </p>
-              </div>
-            </div>
           </div>
 
           <!-- Dynamic Custom Sections (Rendered 100% dynamically from API / DB) -->
@@ -570,14 +552,12 @@ const rateFootnote = computed(() => {
   const rateStr = rawInterestRate.value;
   const subStr = rawSubsidyDetails.value;
 
-  // 1. From interest rate: multiline asterisk note or parenthetical footnote (* ...)
+  // 1. From interest rate: multiline notes (lines after line 0) or parenthetical footnote (* ...)
   if (rateStr && typeof rateStr === 'string') {
     if (rateStr.includes('\n')) {
       const lines = rateStr.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       for (let i = 1; i < lines.length; i++) {
-        if (lines[i].startsWith('*') || /rate could be varied|allocation|note|disclaimer/i.test(lines[i])) {
-          notes.push(lines[i]);
-        }
+        notes.push(lines[i]);
       }
     }
     const starParenMatch = rateStr.match(/\(\s*(\*[^)]+)\)/);
@@ -621,8 +601,9 @@ const cleanInterestRate = computed(() => {
 });
 
 /**
- * Formats interest rate (e.g. "6% (Current) *") cleanly without awkward wrapping.
- * Primary receives the main percentage figure, and subtitle receives parenthetical qualifiers with non-breaking asterisk.
+ * Formats interest rate (e.g. "6% (Current)") cleanly.
+ * The entire primary rate value (including parenthetical status text such as "(Current)")
+ * is preserved in primary at uniform bold font size.
  */
 const parsedInterestRate = computed(() => {
   const str = cleanInterestRate.value;
@@ -633,39 +614,8 @@ const parsedInterestRate = computed(() => {
     return { primary: 'N/A', subtitle: '' };
   }
 
-  // If no parentheses:
-  if (!trimmed.includes('(') || !trimmed.includes(')')) {
-    const safePrimary = trimmed.replace(/\s+\*/g, '\u00A0*');
-    return { primary: safePrimary, subtitle: '' };
-  }
-
-  const match = trimmed.match(/^(.*?)\((.*?)\)(.*)$/);
-  if (!match) {
-    return { primary: trimmed.replace(/\s+\*/g, '\u00A0*'), subtitle: '' };
-  }
-
-  const before = match[1].trim();
-  const inside = match[2].trim();
-  const after = match[3].trim();
-
-  let primary = before;
-  let subtitle = '';
-
-  if (after) {
-    subtitle = `(${inside})\u00A0${after}`.trim();
-  } else {
-    subtitle = `(${inside})`;
-  }
-
-  if (!primary && after) {
-    primary = after;
-    subtitle = `(${inside})`;
-  }
-
-  return {
-    primary: (primary || trimmed).replace(/\s+\*/g, '\u00A0*'),
-    subtitle: subtitle
-  };
+  const safePrimary = trimmed.replace(/\s+\*/g, '\u00A0*');
+  return { primary: safePrimary, subtitle: '' };
 });
 
 /**
@@ -1015,6 +965,113 @@ const displayGracePeriod = computed(() => {
 });
 
 // Parsing helpers
+const healParenthesesArray = (arr) => {
+  if (!Array.isArray(arr)) return [];
+  const merged = [];
+  let buffer = '';
+  for (const item of arr) {
+    const s = String(item || '').trim();
+    if (!s) continue;
+    if (buffer) {
+      buffer += ', ' + s;
+      const opens = (buffer.match(/\(/g) || []).length;
+      const closes = (buffer.match(/\)/g) || []).length;
+      if (opens <= closes) {
+        merged.push(buffer);
+        buffer = '';
+      }
+    } else {
+      const opens = (s.match(/\(/g) || []).length;
+      const closes = (s.match(/\)/g) || []).length;
+      if (opens > closes) {
+        buffer = s;
+      } else {
+        merged.push(s);
+      }
+    }
+  }
+  if (buffer) {
+    merged.push(buffer);
+  }
+  return merged;
+};
+
+// Specialized parser for Services & Facilities Provided
+// Splits by newlines or semicolons, but NEVER splits on commas inside parentheses
+const parseServicesProvided = (rawVal) => {
+  if (!rawVal) return [];
+
+  if (Array.isArray(rawVal)) {
+    return healParenthesesArray(rawVal);
+  }
+
+  if (typeof rawVal === 'string') {
+    const trimmed = rawVal.trim();
+    if (!trimmed) return [];
+
+    // 1. JSON Array string
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return healParenthesesArray(parsed);
+        }
+      } catch {}
+    }
+
+    // 2. If multiline string, split by newlines (\r?\n)
+    if (trimmed.includes('\n') || trimmed.includes('\r')) {
+      const lines = trimmed
+        .split(/\r?\n+/)
+        .map(s => s.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, ''))
+        .filter(Boolean);
+      return healParenthesesArray(lines);
+    }
+
+    // 3. If semicolon separated
+    if (trimmed.includes(';')) {
+      const parts = trimmed
+        .split(';')
+        .map(s => s.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, ''))
+        .filter(Boolean);
+      return healParenthesesArray(parts);
+    }
+
+    // 4. If delimited by explicit bullet symbols (•, \u2022, etc.)
+    if (/[\u2022\u25CF\u25E6•]/.test(trimmed)) {
+      const points = trimmed
+        .split(/[\u2022\u25CF\u25E6•]/)
+        .map(p => p.trim().replace(/^[-*?✓✔]\s*/, ''))
+        .filter(Boolean);
+      if (points.length > 1) return healParenthesesArray(points);
+    }
+
+    // 5. If comma separated, split ONLY on commas outside parentheses
+    const items = [];
+    let current = '';
+    let depth = 0;
+    for (let i = 0; i < trimmed.length; i++) {
+      const char = trimmed[i];
+      if (char === '(') depth++;
+      else if (char === ')') depth = Math.max(0, depth - 1);
+
+      if (char === ',' && depth === 0) {
+        const clean = current.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '');
+        if (clean) items.push(clean);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    const lastClean = current.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '');
+    if (lastClean) items.push(lastClean);
+
+    return healParenthesesArray(items);
+  }
+
+  return [];
+};
+
 const parseArrayOrDelimited = (rawVal) => {
   if (!rawVal) return [];
   if (Array.isArray(rawVal)) return rawVal;
@@ -1114,7 +1171,7 @@ const structuredLocationRows = computed(() => {
     }
     return {
       district: item.district || item.District || '',
-      warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item.name || '',
+      warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item['Location'] || item.location || item.name || '',
       address: item.address || item.Address || '',
       storageCapacity: item.capacity || item.capacityMt || item.storageCapacity || item.storage_capacity || item['Storage Capacity (MT)'] || '',
       contactNumber: item.contactNumber || item.contact_number || item['Contact Number'] || item.phone || item.contact || ''
@@ -1122,7 +1179,7 @@ const structuredLocationRows = computed(() => {
   }).filter(r => r.warehouseName || r.district || r.address || r.storageCapacity || r.contactNumber);
 });
 
-const parsedServicesProvided = computed(() => parseArrayOrDelimited(service.value?.servicesProvided));
+const parsedServicesProvided = computed(() => parseServicesProvided(service.value?.servicesProvided || service.value?.services_provided));
 const parsedPurposeList = computed(() => parseSmartPointsList(service.value?.purpose || service.value?.objective));
 const parsedBeneficiariesList = computed(() => parseSmartPointsList(service.value?.beneficiaries));
 const parsedRequirementsList = computed(() => {
@@ -1276,14 +1333,13 @@ onMounted(() => {
 }
 
 .metric-footnote {
-  margin-top: auto;
-  padding-top: 8px;
+  margin-top: 6px;
   font-size: 0.72rem;
   line-height: 1.35;
   color: #64748b;
-  border-top: 1px dashed #e2e8f0;
-  display: flex;
-  align-items: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   width: 100%;
 }
 
@@ -1351,7 +1407,8 @@ onMounted(() => {
 
 .nature-loan-badge {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
+  gap: 8px;
   background: #f0fdfa;
   color: #0f766e;
   font-weight: 600;

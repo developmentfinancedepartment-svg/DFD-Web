@@ -915,7 +915,7 @@
                         {{ idx + 1 }}
                       </span>
                       <span class="text-xs font-bold text-slate-700">
-                        {{ row.warehouseName || row.district ? `${row.warehouseName || 'Warehouse'} (${row.district || 'Unassigned'})` : `Center Location #${idx + 1}` }}
+                        {{ row.warehouseName || row.district ? `${row.warehouseName || 'Location'} (${row.district || 'Unassigned'})` : `Center Location #${idx + 1}` }}
                       </span>
                     </div>
 
@@ -947,10 +947,10 @@
                       />
                     </div>
 
-                    <!-- Warehouse Name -->
+                    <!-- Location -->
                     <div class="sm:col-span-1 lg:col-span-4">
                       <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                        Warehouse Name *
+                        Location *
                       </label>
                       <input
                         v-model="row.warehouseName"
@@ -1033,7 +1033,7 @@
                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
-                  {{ isServicesListMode ? 'Switch to Comma / Text' : 'Switch to Points Builder' }}
+                  {{ isServicesListMode ? 'Switch to Multi-line / Text' : 'Switch to Points Builder' }}
                 </button>
               </div>
 
@@ -1051,7 +1051,7 @@
                     v-model="servicesProvidedPoints[idx]"
                     @paste="handlePointPaste($event, servicesProvidedPoints, idx)"
                     type="text"
-                    placeholder="e.g. Commercial Grain Drying (Capacity: 10MT/batch)"
+                    placeholder="e.g. Post-Harvest Facilities (Drying, Cleaning & Testing)"
                     class="flex-1 px-3.5 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
                   />
                   <button
@@ -1080,14 +1080,15 @@
                 </div>
               </div>
 
-              <!-- Raw Text Mode -->
+              <!-- Raw Text Mode (Multi-line separated, preserves commas inside parentheses) -->
               <div v-else>
-                <input
+                <textarea
                   v-model="form.servicesProvided"
-                  type="text"
-                  placeholder="e.g. Commercial Grain Drying, Mechanical Cleaning, Moisture Testing, Scientific Storage"
+                  rows="4"
+                  placeholder="e.g. Safe and Quality Storage Facilities&#10;Post-Harvest Facilities (Drying, Cleaning & Testing)&#10;Warehouse Receipt Financing (WRF)"
                   class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
-                />
+                ></textarea>
+                <p class="text-[11px] text-slate-400 mt-1">Enter each facility or service on a new line (one item per line).</p>
               </div>
             </div>
 
@@ -1101,22 +1102,6 @@
                 placeholder="e.g. Managed by Regional Development Bank (RDB) under supervision of District Secretaries"
                 class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
               />
-            </div>
-
-            <!-- Operational Costs & Revenue Note -->
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Operational Costs &amp; Revenue Arrangements Note
-              </label>
-              <textarea
-                v-model="form.operationalCostNote"
-                rows="3"
-                placeholder="e.g. Operating costs for drying, mechanical cleaning, and storage are recovered through nominal, subsidized service fees approved by the Ministry of Finance..."
-                class="w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition text-slate-800"
-              ></textarea>
-              <p class="text-[11px] text-slate-400 mt-1">
-                Details regarding service tariffs, cost recovery, and subsidized fee arrangements for farmers (renders as an info callout card on the public portal).
-              </p>
             </div>
           </div>
 
@@ -2128,7 +2113,7 @@ const isServicesListMode = ref(true);
 const toggleServicesFieldMode = () => {
   isServicesListMode.value = !isServicesListMode.value;
   if (isServicesListMode.value) {
-    servicesProvidedPoints.value = parseRawToList(form.value.servicesProvided);
+    servicesProvidedPoints.value = parseServicesProvided(form.value.servicesProvided);
   } else {
     form.value.servicesProvided = listToRaw(servicesProvidedPoints.value);
   }
@@ -2156,8 +2141,6 @@ const defaultForm = () => ({
   locations: '',
   servicesProvided: '',
   implementationArrangements: '',
-  operationalArrangements: '',
-  operationalCostNote: '',
   centerLocationsTable: [],
   locationsTable: [],
   customMetrics: [],
@@ -2202,7 +2185,7 @@ const parseCenterLocations = (raw) => {
   }
   return list.map(item => ({
     district: item.district || item.District || '',
-    warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item.name || '',
+    warehouseName: item.facilityName || item.facility_name || item.warehouseName || item.warehouse_name || item['Warehouse Name'] || item['Location'] || item.location || item.name || '',
     address: item.address || item.Address || '',
     storageCapacity: item.capacity || item.capacityMt || item.storageCapacity || item.storage_capacity || item['Storage Capacity (MT)'] || '',
     contactNumber: item.contactNumber || item.contact_number || item['Contact Number'] || item.phone || item.contact || ''
@@ -2522,6 +2505,114 @@ const listToRaw = (list) => {
   return list.map(s => (s || '').trim()).filter(Boolean).join('\n');
 };
 
+const healParenthesesArray = (arr) => {
+  if (!Array.isArray(arr)) return [];
+  const merged = [];
+  let buffer = '';
+  for (const item of arr) {
+    const s = String(item || '').trim();
+    if (!s) continue;
+    if (buffer) {
+      buffer += ', ' + s;
+      const opens = (buffer.match(/\(/g) || []).length;
+      const closes = (buffer.match(/\)/g) || []).length;
+      if (opens <= closes) {
+        merged.push(buffer);
+        buffer = '';
+      }
+    } else {
+      const opens = (s.match(/\(/g) || []).length;
+      const closes = (s.match(/\)/g) || []).length;
+      if (opens > closes) {
+        buffer = s;
+      } else {
+        merged.push(s);
+      }
+    }
+  }
+  if (buffer) {
+    merged.push(buffer);
+  }
+  return merged;
+};
+
+const parseServicesProvided = (rawVal) => {
+  if (!rawVal) return [''];
+
+  if (Array.isArray(rawVal)) {
+    const healed = healParenthesesArray(rawVal).map(s => String(s).trim()).filter(Boolean);
+    return healed.length > 0 ? healed : [''];
+  }
+
+  if (typeof rawVal !== 'string' || !rawVal.trim()) return [''];
+  const trimmed = rawVal.trim();
+
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const healed = healParenthesesArray(parsed).map(s => String(s).trim()).filter(Boolean);
+        return healed.length > 0 ? healed : [''];
+      }
+    } catch {}
+  }
+
+  // 1. If multiline string, split by newlines (\r?\n)
+  if (trimmed.includes('\n') || trimmed.includes('\r')) {
+    const lines = trimmed
+      .split(/\r?\n+/)
+      .map(s => s.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, ''))
+      .filter(Boolean);
+    const healed = healParenthesesArray(lines);
+    return healed.length > 0 ? healed : [''];
+  }
+
+  // 2. If semicolon separated
+  if (trimmed.includes(';')) {
+    const parts = trimmed
+      .split(';')
+      .map(s => s.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, ''))
+      .filter(Boolean);
+    const healed = healParenthesesArray(parts);
+    return healed.length > 0 ? healed : [''];
+  }
+
+  // 3. If delimited by explicit bullet symbols (•, \u2022, etc.)
+  if (/[\u2022\u25CF\u25E6•]/.test(trimmed)) {
+    const points = trimmed
+      .split(/[\u2022\u25CF\u25E6•]/)
+      .map(p => p.trim().replace(/^[-*?✓✔]\s*/, '').replace(/^\d+[\.\)]\s*/, ''))
+      .filter(Boolean);
+    if (points.length > 1) {
+      const healed = healParenthesesArray(points);
+      return healed.length > 0 ? healed : [''];
+    }
+  }
+
+  // 4. If comma separated, split ONLY on commas outside parentheses
+  const items = [];
+  let current = '';
+  let depth = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    const char = trimmed[i];
+    if (char === '(') depth++;
+    else if (char === ')') depth = Math.max(0, depth - 1);
+
+    if (char === ',' && depth === 0) {
+      const clean = current.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, '');
+      if (clean) items.push(clean);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  const lastClean = current.trim().replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, '');
+  if (lastClean) items.push(lastClean);
+
+  const healed = healParenthesesArray(items);
+  return healed.length > 0 ? healed : [trimmed.replace(/^[-•*?✓✔\u2022\u25E6\u25AA\u25CF]\s*/, '').replace(/^\d+[\.\)]\s*/, '')];
+};
+
 const addPoint = (targetList) => {
   targetList.push('');
 };
@@ -2608,7 +2699,7 @@ const openEditModal = (scheme) => {
   beneficiariesPoints.value = parseRawToList(rawBeneficiaries);
   purposePoints.value = parseRawToList(rawPurpose);
   requirementsPoints.value = parseRawToList(rawRequirements);
-  servicesProvidedPoints.value = parseRawToList(scheme.servicesProvided);
+  servicesProvidedPoints.value = parseServicesProvided(scheme.servicesProvided || scheme.services_provided);
 
   selectedBanks.value = (scheme.participatingBanks || '')
     .split(/[,;\n]/)
@@ -2652,10 +2743,8 @@ const openEditModal = (scheme) => {
     beneficiaries: rawBeneficiaries,
     requirements: rawRequirements,
     locations: formatArrayField(scheme.locations),
-    servicesProvided: formatArrayField(scheme.servicesProvided),
+    servicesProvided: listToRaw(servicesProvidedPoints.value),
     implementationArrangements: scheme.implementationArrangements || '',
-    operationalArrangements: scheme.operationalCostNote || scheme.operational_cost_note || scheme.operational_arrangements || scheme.operationalArrangements || '',
-    operationalCostNote: scheme.operationalCostNote || scheme.operational_cost_note || scheme.operational_arrangements || scheme.operationalArrangements || '',
     centerLocationsTable: rawCenterLocations || [],
     locationsTable: rawCenterLocations || [],
     customMetrics: scheme.customMetrics || scheme.custom_metrics || [],
@@ -2735,9 +2824,9 @@ const saveScheme = async () => {
     payload.requirements = cleanCitations(payload.requirements);
     payload.eligibility = cleanCitations(payload.eligibility);
     payload.implementationArrangements = cleanCitations(payload.implementationArrangements);
-    payload.operationalCostNote = cleanCitations(form.value.operationalCostNote || form.value.operationalArrangements);
-    payload.operationalArrangements = payload.operationalCostNote;
-    payload.operational_arrangements = payload.operationalCostNote;
+    payload.operationalCostNote = '';
+    payload.operationalArrangements = '';
+    payload.operational_arrangements = '';
     payload.otherInitiatives = cleanCitations(payload.otherInitiatives);
     payload.contactInfo = cleanCitations(payload.contactInfo);
 
@@ -2767,11 +2856,13 @@ const saveScheme = async () => {
       payload.locations = locArray.length > 0 ? JSON.stringify(locArray) : null;
     }
 
-    // Format servicesProvided as JSON array string
-    if (payload.servicesProvided && typeof payload.servicesProvided === 'string') {
-      const srvArray = parseRawToList(payload.servicesProvided).map(s => cleanCitations(s)).filter(Boolean);
-      payload.servicesProvided = srvArray.length > 0 ? JSON.stringify(srvArray) : null;
-    }
+    // Format servicesProvided as clean array items (preserves commas inside parentheses)
+    const rawServices = isServicesListMode.value ? servicesProvidedPoints.value : form.value.servicesProvided;
+    const srvArray = parseServicesProvided(rawServices)
+      .map(s => cleanCitations(s).trim())
+      .filter(Boolean);
+    payload.servicesProvided = srvArray.length > 0 ? JSON.stringify(srvArray) : null;
+    payload.services_provided = payload.servicesProvided;
 
     // Serialize custom sections
     const validSections = customSectionRows.value

@@ -304,11 +304,12 @@
         <!-- RIGHT TO INFORMATION (RTI) SECTION                                -->
         <!-- ================================================================= -->
         <section
-          id="rti"
+          id="rti-section"
           class="rti-section"
           v-if="showRtiSection"
           style="margin-top: 3.5rem; padding-top: 2.5rem; border-top: 1px solid rgba(226, 232, 240, 0.9); margin-bottom: 4rem;"
         >
+          <a id="rti" class="anchor-offset" aria-hidden="true"></a>
           <!-- Clean Centered Section Heading (Matching "Our Services" Style) -->
           <div
             class="rti-heading-block section-header text-center mb-10"
@@ -1419,15 +1420,17 @@ const fetchOfficials = async () => {
         directorGeneral.value = mapOfficial(head);
       }
 
-      // Check for RTI Officers in API data (designation is RTI Designated Officer or RTI Information Officer or division is RTI)
+      // Check for RTI Officers in API data (designation is RTI Designated Officer, RTI Information Officer, Information Officer, or division is RTI)
       const isRtiOfficial = (m) => {
         const des = (m.designation || '').toLowerCase();
         const div = (m.division || '').toLowerCase();
         return (
           des === 'rti designated officer' ||
           des === 'rti information officer' ||
+          des === 'information officer' ||
           des.includes('rti designated') ||
           des.includes('rti information') ||
+          des.includes('information officer') ||
           div === 'rti'
         );
       };
@@ -1489,19 +1492,39 @@ onMounted(() => {
   window.addEventListener('click', handleClickOutside);
   fetchOfficials();
 
-  if (route.hash === '#rti' || route.path.toLowerCase().includes('rti')) {
-    setTimeout(() => {
-      const el = document.getElementById('rti');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 400);
+  const scrollToRtiSection = () => {
+    const el = document.getElementById('rti-section') || document.getElementById('rti');
+    if (el) {
+      const header = document.querySelector('.main-header');
+      const headerHeight = header ? header.offsetHeight : 100;
+      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - headerHeight - 20;
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  if (route.hash === '#rti' || route.hash === '#rti-section' || route.path.toLowerCase().includes('rti')) {
+    setTimeout(scrollToRtiSection, 400);
   }
 });
 
 watch(() => route.hash, (newHash) => {
-  if (newHash === '#rti') {
+  if (newHash === '#rti' || newHash === '#rti-section') {
     setTimeout(() => {
-      const el = document.getElementById('rti');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      const el = document.getElementById('rti-section') || document.getElementById('rti');
+      if (el) {
+        const header = document.querySelector('.main-header');
+        const headerHeight = header ? header.offsetHeight : 100;
+        const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - headerHeight - 20;
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth'
+        });
+      }
     }, 150);
   }
 });

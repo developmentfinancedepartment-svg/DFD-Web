@@ -150,9 +150,11 @@
               <router-link
                 to="/Services"
                 class="nav-link text-base font-medium text-white/80 transition-colors duration-200 hover:text-[#00c5d6]"
-                active-class="!text-[#00c5d6] !font-bold"
-                @click="closeNavbar"
-              >{{ $t('nav.services') }}</router-link>
+                active-class="_"
+                exact-active-class="_"
+                :class="{ '!text-[#00c5d6] !font-bold active': isServicesActive }"
+                @click="handleServicesClick"
+              >{{ servicesNavLabel }}</router-link>
             </li>
             <li class="nav-item">
               <router-link
@@ -174,9 +176,19 @@
               <router-link
                 to="/team"
                 class="nav-link text-base font-medium text-white/80 transition-colors duration-200 hover:text-[#00c5d6]"
-                active-class="!text-[#00c5d6] !font-bold"
-                @click="closeNavbar"
+                active-class="_"
+                exact-active-class="_"
+                :class="{ '!text-[#00c5d6] !font-bold active': isTeamPage && !isRtiActive }"
+                @click="handleTeamClick"
               >{{ $t('nav.team') }}</router-link>
+            </li>
+            <li class="nav-item">
+              <a
+                href="#/team#rti-section"
+                class="nav-link text-base font-medium text-white/80 transition-colors duration-200 hover:text-[#00c5d6] cursor-pointer"
+                :class="{ '!text-[#00c5d6] !font-bold active': isTeamPage && isRtiActive }"
+                @click.prevent="handleRtiClick"
+              >{{ rtiNavLabel }}</a>
             </li>
             <li class="nav-item">
               <router-link
@@ -374,7 +386,9 @@ export default {
       isMobile: false,
       currentDate: '',
       currentTime: '',
-      timer: null
+      timer: null,
+      isRtiActive: false,
+      rtiObserver: null
     };
   },
   computed: {
@@ -398,6 +412,30 @@ export default {
     isServicesPage() {
       const p = this.currentRoutePath;
       return p === '/services' || this.currentRouteName === 'Services';
+    },
+    isServiceDetailsPage() {
+      const p = this.currentRoutePath;
+      const hash = typeof window !== 'undefined' && window.location && window.location.hash ? window.location.hash.toLowerCase() : '';
+      const pathname = typeof window !== 'undefined' && window.location && window.location.pathname ? window.location.pathname.toLowerCase() : '';
+
+      const matchPath = /^\/services\/.+/i.test(p) && p !== '/services/' && p !== '/services';
+      const matchHash = /#\/services\/.+/i.test(hash) && !hash.endsWith('#/services') && !hash.endsWith('#/services/');
+      const matchPathname = /^\/services\/.+/i.test(pathname) && pathname !== '/services/' && pathname !== '/services';
+      const matchRouteName = this.currentRouteName === 'ServiceDetail';
+
+      return Boolean(matchPath || matchHash || matchPathname || matchRouteName);
+    },
+    isServicesActive() {
+      return this.isServicesPage || this.isServiceDetailsPage;
+    },
+    servicesNavLabel() {
+      if (this.isServiceDetailsPage) {
+        return this.$t ? this.$t('nav.serviceDetails') : 'Service Details';
+      }
+      return this.$t ? this.$t('nav.services') : 'Services';
+    },
+    rtiNavLabel() {
+      return this.$t ? this.$t('nav.rti') : 'RTI';
     },
     isPublicationsPage() {
       const p = this.currentRoutePath;
@@ -448,6 +486,9 @@ export default {
     }
   },
   watch: {
+    '$route'(to) {
+      this.handleRouteChange(to);
+    },
     '$route.path'(newPath, oldPath) {
       if (newPath !== oldPath) {
         const q = this.$route && this.$route.query && this.$route.query.q ? String(this.$route.query.q) : '';
@@ -465,6 +506,7 @@ export default {
     this.timer = setInterval(this.updateDateTime, 1000);
 
     this.handleResize();
+    this.handleRouteChange(this.$route);
     window.addEventListener('scroll', this.handleScroll);
     window.addEventListener('resize', this.handleResize);
     document.addEventListener('click', this.handleClickOutside);
@@ -472,6 +514,10 @@ export default {
   unmounted() {
     if (this.timer) {
       clearInterval(this.timer);
+    }
+    if (this.rtiObserver) {
+      this.rtiObserver.disconnect();
+      this.rtiObserver = null;
     }
     window.removeEventListener('scroll', this.handleScroll);
     window.removeEventListener('resize', this.handleResize);
@@ -551,8 +597,145 @@ export default {
         this.isSearchFocused = false;
       }
     },
+    handleServicesClick() {
+      this.closeNavbar();
+      if (this.isServiceDetailsPage) {
+        if (this.$route.path !== '/Services' && this.$route.path !== '/services') {
+          this.$router.push('/Services').catch(() => {});
+        }
+      }
+    },
+    handleTeamClick() {
+      this.closeNavbar();
+      this.isRtiActive = false;
+      if (this.isTeamPage) {
+        if (this.$route.hash) {
+          this.$router.replace({ path: '/team', hash: '' }).catch(() => {});
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    },
+    handleRtiClick() {
+      this.closeNavbar();
+      this.isRtiActive = true;
+      if (this.isTeamPage) {
+        if (this.$route.hash !== '#rti-section') {
+          this.$router.replace({ path: '/team', hash: '#rti-section' }).catch(() => {});
+        }
+        this.scrollToRti();
+      } else {
+        this.$router.push({ path: '/team', hash: '#rti-section' }).then(() => {
+          this.scrollToRti();
+        }).catch(() => {});
+      }
+    },
+    scrollToRti() {
+      const scrollFn = () => {
+        const el = document.getElementById('rti-section') || document.getElementById('rti');
+        if (el) {
+          const header = document.querySelector('.main-header');
+          const headerHeight = header ? header.offsetHeight : 90;
+          const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - headerHeight - 20;
+          window.scrollTo({
+            top: Math.max(0, offsetPosition),
+            behavior: 'smooth'
+          });
+        }
+      };
+      this.$nextTick(() => {
+        scrollFn();
+        setTimeout(scrollFn, 200);
+      });
+    },
     handleScroll() {
       this.isScrolled = window.scrollY > 40;
+      if (this.isTeamPage) {
+        this.checkRtiVisibility();
+      }
+    },
+    checkRtiVisibility() {
+      if (!this.isTeamPage) {
+        this.isRtiActive = false;
+        return;
+      }
+      const el = document.getElementById('rti-section') || document.getElementById('rti');
+      if (!el) {
+        const h = (this.$route?.hash || (typeof window !== 'undefined' ? window.location.hash : '')).toLowerCase();
+        if (h === '#rti' || h === '#rti-section') {
+          this.isRtiActive = true;
+        }
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      const header = document.querySelector('.main-header');
+      const headerHeight = header ? header.offsetHeight : 90;
+
+      const isTopReached = rect.top <= headerHeight + 180;
+      const isBottomVisible = rect.bottom >= headerHeight + 60;
+      const atPageBottom = (window.innerHeight + window.pageYOffset) >= (document.documentElement.scrollHeight - 100);
+
+      if ((isTopReached && isBottomVisible) || (atPageBottom && rect.top <= window.innerHeight)) {
+        this.isRtiActive = true;
+      } else {
+        this.isRtiActive = false;
+      }
+    },
+    setupRtiObserver() {
+      if (this.rtiObserver) {
+        this.rtiObserver.disconnect();
+        this.rtiObserver = null;
+      }
+      if (!this.isTeamPage || typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+        return;
+      }
+      const el = document.getElementById('rti-section') || document.getElementById('rti');
+      if (!el) {
+        setTimeout(this.setupRtiObserver, 300);
+        return;
+      }
+      this.rtiObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (!this.isTeamPage) return;
+          const rect = entry.boundingClientRect;
+          const header = document.querySelector('.main-header');
+          const headerHeight = header ? header.offsetHeight : 90;
+          if (rect.top <= headerHeight + 180 && rect.bottom >= headerHeight + 60) {
+            this.isRtiActive = true;
+          } else if (rect.top > headerHeight + 200) {
+            this.isRtiActive = false;
+          }
+        });
+      }, {
+        root: null,
+        threshold: [0, 0.1, 0.25, 0.5]
+      });
+      this.rtiObserver.observe(el);
+    },
+    handleRouteChange(to) {
+      const p = (to?.path || '').toLowerCase();
+      const hash = (to?.hash || '').toLowerCase();
+      const isTeam = p === '/team' || p === '/ourteam' || p === '/our-team' || to?.name === 'OurTeam';
+
+      if (!isTeam) {
+        this.isRtiActive = false;
+        if (this.rtiObserver) {
+          this.rtiObserver.disconnect();
+          this.rtiObserver = null;
+        }
+        return;
+      }
+
+      if (hash === '#rti' || hash === '#rti-section') {
+        this.isRtiActive = true;
+      } else if (!hash) {
+        this.isRtiActive = false;
+      }
+
+      this.$nextTick(() => {
+        this.setupRtiObserver();
+        this.checkRtiVisibility();
+      });
     },
     toggleNavbar() {
       this.isCollapsed = !this.isCollapsed;

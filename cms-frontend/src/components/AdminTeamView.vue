@@ -358,18 +358,23 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Fax Number
-                </label>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-bold uppercase tracking-wider" :class="isDgSelectedInAddForm ? 'text-slate-700' : 'text-slate-400'">
+                    Fax Number
+                  </label>
+                  <span v-if="!isDgSelectedInAddForm" class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">DG Only</span>
+                </div>
                 <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" :class="isDgSelectedInAddForm ? 'text-slate-400' : 'text-slate-300'">
                     <i class="fas fa-fax text-xs"></i>
                   </div>
                   <input
                     v-model="form.fax"
                     type="text"
-                    placeholder="+94 11 248 4512"
-                    class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] outline-none transition text-slate-800 font-medium"
+                    :disabled="!isDgSelectedInAddForm"
+                    :placeholder="isDgSelectedInAddForm ? '+94 11 248 4512' : 'Applies to Director General only'"
+                    class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl outline-none transition font-medium border"
+                    :class="isDgSelectedInAddForm ? 'bg-slate-50 border-slate-200 hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] text-slate-800' : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none opacity-75'"
                   />
                 </div>
               </div>
@@ -395,18 +400,23 @@
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Secondary / Alt Email
-                </label>
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-bold uppercase tracking-wider" :class="isDgSelectedInAddForm ? 'text-slate-700' : 'text-slate-400'">
+                    Secondary / Alt Email
+                  </label>
+                  <span v-if="!isDgSelectedInAddForm" class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">DG Only</span>
+                </div>
                 <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" :class="isDgSelectedInAddForm ? 'text-slate-400' : 'text-slate-300'">
                     <i class="fas fa-at text-xs"></i>
                   </div>
                   <input
                     v-model="form.secondaryEmail"
                     type="email"
-                    placeholder="hettiarachchi.pmk@treasury.gov.lk"
-                    class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] outline-none transition text-slate-800 font-medium"
+                    :disabled="!isDgSelectedInAddForm"
+                    :placeholder="isDgSelectedInAddForm ? 'hettiarachchi.pmk@treasury.gov.lk' : 'Applies to Director General only'"
+                    class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl outline-none transition font-medium border"
+                    :class="isDgSelectedInAddForm ? 'bg-slate-50 border-slate-200 hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] text-slate-800' : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none opacity-75'"
                   />
                 </div>
               </div>
@@ -414,14 +424,19 @@
 
             <!-- Description / Mandate -->
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Role Description / Mandate
-              </label>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider" :class="isDgSelectedInAddForm ? 'text-slate-700' : 'text-slate-400'">
+                  Role Description / Mandate
+                </label>
+                <span v-if="!isDgSelectedInAddForm" class="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">DG Only</span>
+              </div>
               <textarea
                 v-model="form.description"
                 rows="2"
-                placeholder="Brief summary of official responsibilities or executive mandate..."
-                class="w-full p-3 text-xs bg-slate-50 border border-slate-200 rounded-xl hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] outline-none transition text-slate-800 font-medium resize-none"
+                :disabled="!isDgSelectedInAddForm"
+                :placeholder="isDgSelectedInAddForm ? 'Brief summary of official responsibilities or executive mandate...' : 'Applies to Director General only'"
+                class="w-full p-3 text-xs rounded-xl outline-none transition font-medium resize-none border"
+                :class="isDgSelectedInAddForm ? 'bg-slate-50 border-slate-200 hover:border-[#008795] focus:bg-white focus:ring-2 focus:ring-[#008795]/20 focus:border-[#008795] text-slate-800' : 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed select-none opacity-75'"
               ></textarea>
             </div>
 
@@ -880,8 +895,8 @@
                 </div>
               </div>
 
-              <!-- Mobile Phone & Fax Number (Clean 2-Column Grid, Residence Phone Removed) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- Mobile Phone & Fax Number (Fax applies exclusively to Director General) -->
+              <div :class="isDgSelectedInEditForm ? 'grid grid-cols-1 sm:grid-cols-2 gap-3.5' : ''">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Mobile Phone
@@ -898,7 +913,7 @@
                   </div>
                 </div>
 
-                <div>
+                <div v-if="isDgSelectedInEditForm">
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Fax Number
                   </label>
@@ -915,8 +930,8 @@
                 </div>
               </div>
 
-              <!-- Primary & Secondary Emails (2 Columns) -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- Primary & Secondary Emails (Secondary Email applies exclusively to Director General) -->
+              <div :class="isDgSelectedInEditForm ? 'grid grid-cols-1 sm:grid-cols-2 gap-3.5' : ''">
                 <div>
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Primary Email
@@ -933,7 +948,7 @@
                   </div>
                 </div>
 
-                <div>
+                <div v-if="isDgSelectedInEditForm">
                   <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Secondary / Alt Email
                   </label>
@@ -950,8 +965,8 @@
                 </div>
               </div>
 
-              <!-- Description -->
-              <div>
+              <!-- Description / Mandate (Applies exclusively to Director General) -->
+              <div v-if="isDgSelectedInEditForm">
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                   Role Description / Mandate
                 </label>
@@ -1095,8 +1110,7 @@ const designationOptions = [
   'Deputy Director Finance',
   'Development Officer',
   'Chief Management Service Officer',
-  'RTI Designated Officer',
-  'RTI Information Officer'
+  'Information Officer'
 ];
 
 const divisionOptions = [
@@ -1107,14 +1121,8 @@ const divisionOptions = [
   'RTI'
 ];
 
-// Backward compatibility: If an official has a legacy or custom designation, keep it available in the edit list
-const editDesignationOptions = computed(() => {
-  const current = (editForm.value.designation || '').trim();
-  if (current && !designationOptions.some(d => d.toLowerCase() === current.toLowerCase())) {
-    return [current, ...designationOptions];
-  }
-  return designationOptions;
-});
+// Role helpers strictly for Director General
+const isDirectorGeneralRole = (role) => String(role || '').trim() === 'Director General';
 
 // Dropdown Toggle Handlers
 const toggleDesignationDropdown = () => {
@@ -1148,6 +1156,11 @@ const toggleEditDivisionDropdown = () => {
 // Selection Handlers
 const selectDesignation = (role) => {
   form.value.designation = role;
+  if (!isDirectorGeneralRole(role)) {
+    form.value.fax = '';
+    form.value.secondaryEmail = '';
+    form.value.description = '';
+  }
   isDesignationDropdownOpen.value = false;
 };
 
@@ -1159,6 +1172,11 @@ const selectDivision = (div) => {
 
 const selectEditDesignation = (role) => {
   editForm.value.designation = role;
+  if (!isDirectorGeneralRole(role)) {
+    editForm.value.fax = '';
+    editForm.value.secondaryEmail = '';
+    editForm.value.description = '';
+  }
   isEditDesignationDropdownOpen.value = false;
 };
 
@@ -1247,6 +1265,36 @@ const initialEditForm = () => ({
 });
 
 const editForm = ref(initialEditForm());
+
+// Backward compatibility: If an official has a legacy or custom designation, keep it available in the edit list
+const editDesignationOptions = computed(() => {
+  const current = (editForm.value.designation || '').trim();
+  if (current && !designationOptions.some(d => d.toLowerCase() === current.toLowerCase())) {
+    return [current, ...designationOptions];
+  }
+  return designationOptions;
+});
+
+// Role helpers & conditional fields strictly for Director General
+const isDgSelectedInAddForm = computed(() => isDirectorGeneralRole(form.value.designation));
+const isDgSelectedInEditForm = computed(() => isDirectorGeneralRole(editForm.value.designation));
+
+// Auto-clear Director General exclusive fields when role switches away from Director General
+watch(() => form.value.designation, (newRole) => {
+  if (!isDirectorGeneralRole(newRole)) {
+    form.value.fax = '';
+    form.value.secondaryEmail = '';
+    form.value.description = '';
+  }
+});
+
+watch(() => editForm.value.designation, (newRole) => {
+  if (!isDirectorGeneralRole(newRole)) {
+    editForm.value.fax = '';
+    editForm.value.secondaryEmail = '';
+    editForm.value.description = '';
+  }
+});
 
 // Division change handlers
 const handleDivisionChange = () => {
@@ -1379,18 +1427,20 @@ const handleCreate = async () => {
       ? Number(form.value.displayOrder)
       : calculateNextDisplayOrder(selectedDivision);
 
+    const isDg = isDirectorGeneralRole(form.value.designation);
+
     const payload = {
       name: form.value.name.trim(),
       designation: form.value.designation.trim(),
       division: selectedDivision,
       room: form.value.room ? form.value.room.trim() : null,
-      description: form.value.description ? form.value.description.trim() : null,
+      description: isDg && form.value.description ? form.value.description.trim() : null,
       officePhone: form.value.officePhone ? form.value.officePhone.trim() : null,
       extension: form.value.extension ? form.value.extension.trim() : null,
       mobilePhone: form.value.mobilePhone ? form.value.mobilePhone.trim() : null,
-      fax: form.value.fax ? form.value.fax.trim() : null,
+      fax: isDg && form.value.fax ? form.value.fax.trim() : null,
       primaryEmail: form.value.primaryEmail ? form.value.primaryEmail.trim() : null,
-      secondaryEmail: form.value.secondaryEmail ? form.value.secondaryEmail.trim() : null,
+      secondaryEmail: isDg && form.value.secondaryEmail ? form.value.secondaryEmail.trim() : null,
       displayOrder: finalDisplayOrder
     };
 
@@ -1428,19 +1478,21 @@ const openEditModal = (member) => {
     : calculateNextDisplayOrder(originalEditDivision.value, member.id);
   originalEditDisplayOrder.value = savedOrder;
 
+  const isDg = isDirectorGeneralRole(member.designation);
+
   editForm.value = {
     id: member.id,
     name: member.name || '',
     designation: member.designation || '',
     division: member.division || 'Financial Solution',
     room: member.room || '',
-    description: member.description || '',
+    description: isDg ? (member.description || '') : '',
     officePhone: member.officePhone || '',
     extension: member.extension || '',
     mobilePhone: member.mobilePhone || '',
-    fax: member.fax || '',
+    fax: isDg ? (member.fax || '') : '',
     primaryEmail: member.primaryEmail || '',
-    secondaryEmail: member.secondaryEmail || '',
+    secondaryEmail: isDg ? (member.secondaryEmail || '') : '',
     displayOrder: savedOrder
   };
   isEditModalOpen.value = true;
@@ -1473,18 +1525,20 @@ const handleUpdate = async () => {
       ? Number(editForm.value.displayOrder)
       : (originalEditDisplayOrder.value || 1);
 
+    const isDg = isDirectorGeneralRole(editForm.value.designation);
+
     const payload = {
       name: editForm.value.name.trim(),
       designation: editForm.value.designation.trim(),
       division: editForm.value.division,
       room: editForm.value.room ? editForm.value.room.trim() : null,
-      description: editForm.value.description ? editForm.value.description.trim() : null,
+      description: isDg && editForm.value.description ? editForm.value.description.trim() : null,
       officePhone: editForm.value.officePhone ? editForm.value.officePhone.trim() : null,
       extension: editForm.value.extension ? editForm.value.extension.trim() : null,
       mobilePhone: editForm.value.mobilePhone ? editForm.value.mobilePhone.trim() : null,
-      fax: editForm.value.fax ? editForm.value.fax.trim() : null,
+      fax: isDg && editForm.value.fax ? editForm.value.fax.trim() : null,
       primaryEmail: editForm.value.primaryEmail ? editForm.value.primaryEmail.trim() : null,
-      secondaryEmail: editForm.value.secondaryEmail ? editForm.value.secondaryEmail.trim() : null,
+      secondaryEmail: isDg && editForm.value.secondaryEmail ? editForm.value.secondaryEmail.trim() : null,
       displayOrder: finalDisplayOrder
     };
 

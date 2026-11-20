@@ -57,6 +57,11 @@
                 <li><a href="https://www.ncgil.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkNcgi') }}</a></li>
                 <li><a href="https://agrimin.gov.lk/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkAgri') }}</a></li>
                 <li><a href="https://investsrilanka.com/" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkBoi') }}</a></li>
+                <li><a href="https://www.industry.gov.lk" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkIndustry') }}</a></li>
+                <li><a href="https://www.plantationindustries.gov.lk" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkPlantation') }}</a></li>
+                <li><a href="https://www.socialempowerment.gov.lk" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkRuralDev') }}</a></li>
+                <li><a href="https://www.tourismmin.gov.lk" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkForeignAffairs') }}</a></li>
+                <li><a href="https://www.fisheries.gov.lk" target="_blank" rel="noopener noreferrer" class="flex items-start gap-2"><i class="fas fa-chevron-right fa-xs shrink-0 mt-1"></i>{{ $t('footer.linkFisheries') }}</a></li>
               </ul>
             </div>
           </div>
