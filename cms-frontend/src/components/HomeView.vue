@@ -368,7 +368,7 @@
                   <!-- Category / Year Badge -->
                   <td class="py-3.5 px-4 whitespace-nowrap">
                     <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                      {{ doc.year ? `FY ${doc.year}` : 'Action Plan' }}
+                      {{ formatDocType(doc.documentType || doc.category) }} • FY {{ doc.year }}
                     </span>
                   </td>
 
@@ -549,6 +549,13 @@ const metricsAlert = reactive({
   type: 'success',
   message: ''
 });
+
+const formatDocType = (type) => {
+  const t = (type || 'ACTION_PLAN').toUpperCase();
+  if (t === 'ANNUAL_REPORT') return 'Annual Report';
+  if (t === 'CIRCULAR') return 'Circular';
+  return 'Action Plan';
+};
 
 const fetchHomeMetrics = async () => {
   isLoadingMetrics.value = true;

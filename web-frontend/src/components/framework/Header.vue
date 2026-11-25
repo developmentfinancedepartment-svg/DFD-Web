@@ -400,7 +400,9 @@ export default {
       return p === '/' || p === '/home' || this.currentRouteName === 'home';
     },
     currentRoutePath() {
-      return this.$route ? (this.$route.path || '').toLowerCase() : '';
+      const rawPath = this.$route ? (this.$route.path || '') : (typeof window !== 'undefined' && window.location ? (window.location.pathname || '') : '');
+      const normalized = (rawPath || '').toLowerCase().replace(/\/+$/, '');
+      return normalized || '/';
     },
     currentRouteName() {
       return this.$route ? (this.$route.name || '') : '';
@@ -414,16 +416,18 @@ export default {
       return p === '/services' || this.currentRouteName === 'Services';
     },
     isServiceDetailsPage() {
-      const p = this.currentRoutePath;
-      const hash = typeof window !== 'undefined' && window.location && window.location.hash ? window.location.hash.toLowerCase() : '';
-      const pathname = typeof window !== 'undefined' && window.location && window.location.pathname ? window.location.pathname.toLowerCase() : '';
+      const route = this.$route;
+      const rawPath = (route && route.path) || (typeof window !== 'undefined' && window.location ? (window.location.pathname || '') : '');
+      const path = (rawPath || '').toLowerCase().replace(/\/+$/, '');
 
-      const matchPath = /^\/services\/.+/i.test(p) && p !== '/services/' && p !== '/services';
-      const matchHash = /#\/services\/.+/i.test(hash) && !hash.endsWith('#/services') && !hash.endsWith('#/services/');
-      const matchPathname = /^\/services\/.+/i.test(pathname) && pathname !== '/services/' && pathname !== '/services';
-      const matchRouteName = this.currentRouteName === 'ServiceDetail';
+      if (path === '/services' || !path.startsWith('/services')) {
+        return false;
+      }
 
-      return Boolean(matchPath || matchHash || matchPathname || matchRouteName);
+      const isChildRoute = path.startsWith('/services/') && path !== '/services';
+      const hasId = Boolean(route && route.params && route.params.id);
+
+      return isChildRoute || hasId;
     },
     isServicesActive() {
       return this.isServicesPage || this.isServiceDetailsPage;
@@ -600,7 +604,8 @@ export default {
     handleServicesClick() {
       this.closeNavbar();
       if (this.isServiceDetailsPage) {
-        if (this.$route.path !== '/Services' && this.$route.path !== '/services') {
+        const p = this.currentRoutePath;
+        if (p !== '/services') {
           this.$router.push('/Services').catch(() => {});
         }
       }

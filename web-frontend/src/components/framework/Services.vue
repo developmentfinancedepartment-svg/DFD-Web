@@ -126,84 +126,27 @@
           <h5 class="text-muted">{{ $t('services.loading') }}</h5>
         </div>
 
-        <!-- Active Services Grid -->
-        <div
-          class="services-grid flex flex-wrap justify-center gap-6 animate-fade-up"
-          v-if="activeSchemes.length > 0"
-        >
+        <template v-else>
+          <!-- Active Services Grid -->
           <div
-            class="service-card flex flex-col h-full w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.5rem)] max-w-[300px]"
-            v-for="service in activeSchemes"
-            :key="service.id || service.title"
+            class="services-grid flex flex-wrap justify-center gap-6 animate-fade-up"
+            v-if="activeSchemes.length > 0"
           >
-            <div class="card-glass group flex flex-col justify-between h-full p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:-translate-y-1.5 hover:shadow-xl hover:border-teal-400/60 transition-all duration-300 relative">
-              <!-- Non-Loan Facility OTHER Pill Badge (Clean - no Active badge on regular active cards) -->
-              <div v-if="hasOtherBadge(service)" class="other-badge-wrapper">
-                <span class="badge-other">
-                  OTHER
-                </span>
-              </div>
-
-              <!-- 1. Top circular teal icon -->
-              <div class="service-icon-box w-14 h-14 mx-auto" :class="{ 'mt-2': !hasOtherBadge(service) }">
-                <i :class="service.icon || (isOtherFacility(service) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')"></i>
-              </div>
-
-              <!-- 2. Scheme / Service Title -->
-              <h3 class="card-title text-lg font-bold text-slate-900 text-center min-h-[52px] flex items-center justify-center mt-4">
-                {{ service.title }}
-              </h3>
-
-              <!-- 3. Clean short description -->
-              <p class="card-description text-sm text-slate-500 text-center line-clamp-3 min-h-[60px] my-4 leading-relaxed">
-                {{ service.description }}
-              </p>
-
-              <!-- 4. Bottom Action Button (Active & Clickable) -->
-              <router-link
-                :to="getSchemeLink(service)"
-                class="scheme-action-btn mt-auto whitespace-nowrap bg-teal-50 text-teal-700 hover:bg-teal-600 hover:text-white rounded-xl py-2.5 px-4 font-medium text-sm transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-[200px] group/btn"
-              >
-                <span>{{ $t('services.viewDetailsBtn') }}</span>
-                <span class="btn-arrow transition-transform duration-200 group-hover/btn:translate-x-1.5 group-hover:translate-x-1.5">&rarr;</span>
-              </router-link>
-            </div>
-          </div>
-        </div>
-
-        <!-- Separate Section for Coming Soon Schemes -->
-        <div
-          v-if="comingSoonSchemes.length > 0"
-          class="upcoming-schemes-wrapper animate-fade-up"
-        >
-          <!-- Section Divider & Header -->
-          <div class="upcoming-header">
-            <h2 class="upcoming-title">
-              Upcoming Schemes
-            </h2>
-            <div class="upcoming-title-underline"></div>
-          </div>
-
-          <!-- Coming Soon Cards Grid -->
-          <div class="services-grid flex flex-wrap justify-center gap-6">
             <div
               class="service-card flex flex-col h-full w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.5rem)] max-w-[300px]"
-              v-for="service in comingSoonSchemes"
+              v-for="service in activeSchemes"
               :key="service.id || service.title"
             >
-              <div class="card-glass group flex flex-col justify-between h-full p-6 rounded-2xl bg-white border border-amber-200/70 shadow-sm relative transition-all duration-300">
-                <!-- Top Badges: Sleek soft-teal/amber rounded pill badge (+ OTHER if applicable) -->
-                <div class="upcoming-card-badges">
-                  <span class="badge-coming-soon">
-                    COMING SOON
-                  </span>
-                  <span v-if="hasOtherBadge(service)" class="badge-other">
+              <div class="card-glass group flex flex-col justify-between h-full p-6 rounded-2xl bg-white border border-slate-100 shadow-sm hover:-translate-y-1.5 hover:shadow-xl hover:border-teal-400/60 transition-all duration-300 relative">
+                <!-- Non-Loan Facility OTHER Pill Badge (Clean - no Active badge on regular active cards) -->
+                <div v-if="hasOtherBadge(service)" class="other-badge-wrapper">
+                  <span class="badge-other">
                     OTHER
                   </span>
                 </div>
 
-                <!-- 1. Scheme Icon -->
-                <div class="service-icon-box w-14 h-14 mx-auto bg-gradient-to-br from-amber-500 to-teal-600 shadow-amber-500/20">
+                <!-- 1. Top circular teal icon -->
+                <div class="service-icon-box w-14 h-14 mx-auto" :class="{ 'mt-2': !hasOtherBadge(service) }">
                   <i :class="service.icon || (isOtherFacility(service) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')"></i>
                 </div>
 
@@ -212,40 +155,99 @@
                   {{ service.title }}
                 </h3>
 
-                <!-- 3. Clean Short Description -->
+                <!-- 3. Clean short description -->
                 <p class="card-description text-sm text-slate-500 text-center line-clamp-3 min-h-[60px] my-4 leading-relaxed">
                   {{ service.description }}
                 </p>
 
-                <!-- 4. Disabled, Non-Clickable Button -->
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  class="scheme-action-btn-disabled mt-auto whitespace-nowrap bg-slate-100 text-slate-400 border border-slate-200 rounded-xl py-2.5 px-4 font-semibold text-sm cursor-not-allowed pointer-events-none flex items-center justify-center gap-2 mx-auto w-full max-w-[200px]"
-                  title="Scheme details will be available upon official launch"
+                <!-- 4. Bottom Action Button (Active & Clickable) -->
+                <router-link
+                  :to="getSchemeLink(service)"
+                  class="scheme-action-btn mt-auto whitespace-nowrap bg-teal-50 text-teal-700 hover:bg-teal-600 hover:text-white rounded-xl py-2.5 px-4 font-medium text-sm transition-all flex items-center justify-center gap-2 mx-auto w-full max-w-[200px] group/btn"
                 >
                   <span>{{ $t('services.viewDetailsBtn') }}</span>
-                  <span class="btn-arrow">&rarr;</span>
-                </button>
+                  <span class="btn-arrow transition-transform duration-200 group-hover/btn:translate-x-1.5 group-hover:translate-x-1.5">&rarr;</span>
+                </router-link>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- No Results -->
-        <div class="text-center py-5" v-else-if="activeSchemes.length === 0 && comingSoonSchemes.length === 0">
-          <div class="mb-4">
-            <i class="fas fa-folder-open fa-3x text-muted opacity-50"></i>
+          <!-- Separate Section for Coming Soon Schemes -->
+          <div
+            v-if="comingSoonSchemes.length > 0"
+            class="upcoming-schemes-wrapper animate-fade-up"
+          >
+            <!-- Section Divider & Header -->
+            <div class="upcoming-header">
+              <h2 class="upcoming-title">
+                Upcoming Schemes
+              </h2>
+              <div class="upcoming-title-underline"></div>
+            </div>
+
+            <!-- Coming Soon Cards Grid -->
+            <div class="services-grid flex flex-wrap justify-center gap-6">
+              <div
+                class="service-card flex flex-col h-full w-full sm:w-[calc(50%-1rem)] lg:w-[calc(25%-1.5rem)] max-w-[300px]"
+                v-for="service in comingSoonSchemes"
+                :key="service.id || service.title"
+              >
+                <div class="card-glass group flex flex-col justify-between h-full p-6 rounded-2xl bg-white border border-amber-200/70 shadow-sm relative transition-all duration-300">
+                  <!-- Top Badges: Sleek soft-teal/amber rounded pill badge (+ OTHER if applicable) -->
+                  <div class="upcoming-card-badges">
+                    <span class="badge-coming-soon">
+                      COMING SOON
+                    </span>
+                    <span v-if="hasOtherBadge(service)" class="badge-other">
+                      OTHER
+                    </span>
+                  </div>
+
+                  <!-- 1. Scheme Icon -->
+                  <div class="service-icon-box w-14 h-14 mx-auto bg-gradient-to-br from-amber-500 to-teal-600 shadow-amber-500/20">
+                    <i :class="service.icon || (isOtherFacility(service) ? 'fas fa-warehouse' : 'fas fa-hand-holding-usd')"></i>
+                  </div>
+
+                  <!-- 2. Scheme / Service Title -->
+                  <h3 class="card-title text-lg font-bold text-slate-900 text-center min-h-[52px] flex items-center justify-center mt-4">
+                    {{ service.title }}
+                  </h3>
+
+                  <!-- 3. Clean Short Description -->
+                  <p class="card-description text-sm text-slate-500 text-center line-clamp-3 min-h-[60px] my-4 leading-relaxed">
+                    {{ service.description }}
+                  </p>
+
+                  <!-- 4. Disabled, Non-Clickable Button -->
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    class="scheme-action-btn-disabled mt-auto whitespace-nowrap bg-slate-100 text-slate-400 border border-slate-200 rounded-xl py-2.5 px-4 font-semibold text-sm cursor-not-allowed pointer-events-none flex items-center justify-center gap-2 mx-auto w-full max-w-[200px]"
+                    title="Scheme details will be available upon official launch"
+                  >
+                    <span>{{ $t('services.viewDetailsBtn') }}</span>
+                    <span class="btn-arrow">&rarr;</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <h4 class="text-muted">{{ $t('services.noSchemesTitle') }}</h4>
-          <p class="text-muted small">
-            {{ $t('services.noSchemesDesc') }}
-          </p>
-          <button class="btn btn-teal text-white mt-2 px-4 rounded-pill" @click="resetFilters">
-            {{ $t('common.resetFilters') }}
-          </button>
-        </div>
+
+          <!-- No Results -->
+          <div class="text-center py-5" v-if="!loading && activeSchemes.length === 0 && comingSoonSchemes.length === 0">
+            <div class="mb-4">
+              <i class="fas fa-folder-open fa-3x text-muted opacity-50"></i>
+            </div>
+            <h4 class="text-muted">{{ $t('services.noSchemesTitle') }}</h4>
+            <p class="text-muted small">
+              {{ $t('services.noSchemesDesc') }}
+            </p>
+            <button class="btn btn-teal text-white mt-2 px-4 rounded-pill" @click="resetFilters">
+              {{ $t('common.resetFilters') }}
+            </button>
+          </div>
+        </template>
       </div>
     </section>
   </div>
